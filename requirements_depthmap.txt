@@ -1,0 +1,24 @@
+# Depth Map Generator Requirements
+# ================================
+
+# Core dependencies
+opencv-python>=4.8.0
+numpy>=1.21.0
+Pillow>=9.0.0
+matplotlib>=3.5.0
+
+# AI/ML dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+
+# Optional: ZoeDepth (more advanced depth estimation)
+# zoedepth>=0.1.0
+
+# Optional: Additional visualization
+# plotly>=5.0.0
+# open3d>=0.17.0
+
+# Development dependencies (optional)
+# jupyter>=1.0.0
+# ipywidgets>=8.0.0
