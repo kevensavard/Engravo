@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const timestamp = Date.now();
     const filename = `${timestamp}-with-text.png`;
-    const url = await saveBuffer(processedBuffer, filename);
+    const url = await saveBuffer(processedBuffer, filename, user.id);
 
     // Get remaining credits
     const { getUserCredits } = await import("@/lib/db/users");

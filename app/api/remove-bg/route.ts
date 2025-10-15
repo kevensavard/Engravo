@@ -72,11 +72,11 @@ export async function POST(request: NextRequest) {
     const resultImageBuffer = Buffer.from(transformedResponse.data);
     console.log("Remove background: Downloaded image, size:", resultImageBuffer.length);
 
-    // Step 5: Save locally and return
+    // Step 5: Save to blob and return
     const metadata = await getImageMetadata(resultImageBuffer);
     const timestamp = Date.now();
     const filename = `${timestamp}-no-bg.png`;
-    const url = await saveBuffer(resultImageBuffer, filename);
+    const url = await saveBuffer(resultImageBuffer, filename, user.id);
     
     console.log("Remove background: Saved locally to:", url);
 

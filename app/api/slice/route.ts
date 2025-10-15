@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < slices.length; i++) {
       const filename = `${timestamp}-slice-${i + 1}.png`;
-      const url = await saveBuffer(slices[i], filename);
+      const url = await saveBuffer(slices[i], filename, user.id);
       urls.push(url);
     }
 
