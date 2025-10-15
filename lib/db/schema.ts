@@ -40,6 +40,16 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Track blob URLs for cleanup
+export const userBlobs = pgTable("user_blobs", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  blobUrl: text("blob_url").notNull(),
+  isExported: boolean("is_exported").default(false),
+  expiresAt: timestamp("expires_at"), // 48 hours after export or immediate if not exported
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(creditTransactions),

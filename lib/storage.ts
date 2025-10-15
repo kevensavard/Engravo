@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { put, del, list } from '@vercel/blob';
 
 export async function uploadToBlob(buffer: Buffer, filename: string): Promise<string> {
   try {
@@ -11,6 +11,38 @@ export async function uploadToBlob(buffer: Buffer, filename: string): Promise<st
   } catch (error) {
     console.error("Blob upload error:", error);
     throw error;
+  }
+}
+
+export async function deleteFromBlob(url: string): Promise<boolean> {
+  try {
+    await del(url);
+    console.log("Deleted from blob:", url);
+    return true;
+  } catch (error) {
+    console.error("Blob delete error:", error);
+    return false;
+  }
+}
+
+export async function deleteMultipleFromBlob(urls: string[]): Promise<void> {
+  try {
+    await del(urls);
+    console.log(`Deleted ${urls.length} files from blob`);
+  } catch (error) {
+    console.error("Blob bulk delete error:", error);
+  }
+}
+
+export async function listUserBlobs(userId: string): Promise<string[]> {
+  try {
+    const { blobs } = await list({
+      prefix: `uploads/${userId}/`,
+    });
+    return blobs.map(blob => blob.url);
+  } catch (error) {
+    console.error("Error listing blobs:", error);
+    return [];
   }
 }
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { getImageMetadata } from "@/lib/image-processor";
 import { uploadToBlob } from "@/lib/storage";
+import { trackBlob, deleteUserSessionBlobs } from "@/lib/db/blobs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +13,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Get current user
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    // Delete all previous session blobs for this user (cleanup old images)
+    await deleteUserSessionBlobs(user.id);
+
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -18,12 +29,15 @@ export async function POST(request: NextRequest) {
     // Get metadata
     const metadata = await getImageMetadata(buffer);
 
-    // Generate unique filename
+    // Generate unique filename with user ID
     const timestamp = Date.now();
-    const filename = `uploads/${timestamp}-${file.name}`;
+    const filename = `uploads/${user.id}/${timestamp}-${file.name}`;
 
     // Upload to Vercel Blob
     const url = await uploadToBlob(buffer, filename);
+
+    // Track the blob for cleanup (not exported yet)
+    await trackBlob(user.id, url, false);
 
     return NextResponse.json({
       url,

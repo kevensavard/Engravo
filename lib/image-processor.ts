@@ -2,10 +2,18 @@ import sharp from "sharp";
 import { createCanvas, loadImage, CanvasRenderingContext2D } from "canvas";
 import { uploadToBlob, loadImageFromUrl } from "./storage";
 
-export async function saveBuffer(buffer: Buffer, filename: string): Promise<string> {
+export async function saveBuffer(buffer: Buffer, filename: string, userId?: string): Promise<string> {
   // Upload to Vercel Blob and return the URL
-  const blobFilename = `uploads/${filename}`;
-  return await uploadToBlob(buffer, blobFilename);
+  const blobFilename = userId ? `uploads/${userId}/${filename}` : `uploads/${filename}`;
+  const url = await uploadToBlob(buffer, blobFilename);
+  
+  // Track the blob if userId is provided (will be cleaned up based on export status)
+  if (userId) {
+    const { trackBlob } = await import("./db/blobs");
+    await trackBlob(userId, url, false);
+  }
+  
+  return url;
 }
 
 export async function loadImageBuffer(imageUrl: string): Promise<Buffer> {
