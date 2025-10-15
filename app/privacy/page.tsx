@@ -104,7 +104,7 @@ export default function PrivacyPage() {
                 <li>Opt-out of marketing communications</li>
               </ul>
               <p className="mt-4">
-                To exercise these rights, contact us at <a href="mailto:privacy@engravo.app" className="text-blue-400 hover:underline">privacy@engravo.app</a>
+                To exercise these rights, use our <Link href="/contact" className="text-blue-400 hover:underline">contact form</Link>.
               </p>
             </div>
           </div>
@@ -144,9 +144,12 @@ export default function PrivacyPage() {
             <p className="text-gray-300 mb-4">
               If you have questions about this Privacy Policy, please contact us:
             </p>
-            <div className="space-y-2 text-gray-300">
-              <p><strong>Email:</strong> <a href="mailto:privacy@engravo.app" className="text-blue-400 hover:underline">privacy@engravo.app</a></p>
-              <p><strong>Contact Form:</strong> <Link href="/contact" className="text-blue-400 hover:underline">engravo.app/contact</Link></p>
+            <div className="text-center">
+              <Link href="/contact">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Contact Us
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

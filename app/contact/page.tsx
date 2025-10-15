@@ -181,7 +181,7 @@ export default function ContactPage() {
         )}
 
         {/* Quick Info */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 text-center max-w-2xl mx-auto">
           <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-6">
             <h3 className="font-semibold mb-2">Response Time</h3>
             <p className="text-gray-400 text-sm">Usually within 24 hours</p>
@@ -189,10 +189,6 @@ export default function ContactPage() {
           <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-6">
             <h3 className="font-semibold mb-2">Support Hours</h3>
             <p className="text-gray-400 text-sm">Monday - Friday, 9AM - 5PM EST</p>
-          </div>
-          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-6">
-            <h3 className="font-semibold mb-2">Email</h3>
-            <p className="text-gray-400 text-sm">support@engravo.app</p>
           </div>
         </div>
       </div>

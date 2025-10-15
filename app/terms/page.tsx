@@ -187,11 +187,14 @@ export default function TermsPage() {
           <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-6 mt-8">
             <h3 className="text-xl font-bold mb-2">Contact Us</h3>
             <p className="text-gray-300 mb-4">
-              Questions about these Terms? Contact us:
+              Questions about these Terms? We're here to help.
             </p>
-            <div className="space-y-2 text-gray-300">
-              <p><strong>Email:</strong> <a href="mailto:legal@engravo.app" className="text-blue-400 hover:underline">legal@engravo.app</a></p>
-              <p><strong>Contact Form:</strong> <Link href="/contact" className="text-blue-400 hover:underline">engravo.app/contact</Link></p>
+            <div className="text-center">
+              <Link href="/contact">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Contact Us
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
