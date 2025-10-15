@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { loadImageBuffer } from "@/lib/image-processor";
+import { loadImageBuffer, saveBuffer } from "@/lib/image-processor";
 import sharp from "sharp";
 import { deductCredits } from "@/lib/db/users";
 
@@ -54,24 +54,18 @@ export async function POST(request: NextRequest) {
   <rect width="${width}" height="${height}" fill="url(#imagePattern)"/>
 </svg>`;
 
-    // Save SVG
+    // Save SVG to blob storage
     const timestamp = Date.now();
-    const filename = `${timestamp}-vectorized.svg`;
-    const fs = require("fs/promises");
-    const path = require("path");
+    const filename = `${user.id}-${timestamp}-vectorized.svg`;
     
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadDir, { recursive: true });
-    
-    const filepath = path.join(uploadDir, filename);
-    await fs.writeFile(filepath, svg);
+    const blobUrl = await saveBuffer(Buffer.from(svg, 'utf8'), filename, user.id);
 
     // Get remaining credits
     const { getUserCredits } = await import("@/lib/db/users");
     const creditsRemaining = await getUserCredits(user.id);
 
     return NextResponse.json({
-      url: `/uploads/${filename}`,
+      url: blobUrl,
       filename,
       format: "svg",
       creditsRemaining,
