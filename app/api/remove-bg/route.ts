@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
     console.log("Remove background: Transformation URL:", transformedUrl);
 
     // Step 4: Download the processed image from Cloudinary
-    const imageResponse = await axios.get(transformedUrl, {
+    const transformedResponse = await axios.get(transformedUrl, {
       responseType: 'arraybuffer'
     });
 
-    const resultImageBuffer = Buffer.from(imageResponse.data);
+    const resultImageBuffer = Buffer.from(transformedResponse.data);
     console.log("Remove background: Downloaded image, size:", resultImageBuffer.length);
 
     // Step 5: Save locally and return
