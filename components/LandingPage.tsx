@@ -300,12 +300,11 @@ export default function LandingPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl" />
               <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-2 shadow-2xl">
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <ImageIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-500">Editor Preview</p>
-                  </div>
-                </div>
+                <img 
+                  src="/imagepreview.jpg" 
+                  alt="Engravo.app Image Editor Interface Preview" 
+                  className="w-full h-auto rounded-lg shadow-2xl"
+                />
               </div>
             </motion.div>
           </motion.div>
