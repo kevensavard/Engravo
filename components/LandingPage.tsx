@@ -54,43 +54,43 @@ export default function LandingPage() {
       category: "Basic Tools",
       icon: ImageIcon,
       color: "from-blue-500 to-cyan-500",
-      items: ["Grayscale", "Resize", "Crop", "Sharpen", "Color Correction"],
-      credits: "Free",
+      items: ["Resize", "Rotate & Flip", "Interactive Crop (1)", "Sharpen (1)", "Color Correction (1)"],
+      credits: "Free - 1 credit",
     },
     {
-      category: "Effects",
+      category: "Artistic Effects",
       icon: Paintbrush,
       color: "from-purple-500 to-pink-500",
-      items: ["Oil Painting", "Sketch", "Vintage", "HDR", "Noise Reduction"],
-      credits: "Free",
+      items: ["Oil Painting (2)", "Pencil Sketch (2)", "Vintage Film (2)", "HDR Effect (3)", "Noise Reduction"],
+      credits: "2-3 credits",
     },
     {
-      category: "Advanced Tools",
+      category: "AI-Powered Tools",
       icon: Wand2,
       color: "from-orange-500 to-red-500",
-      items: ["Add Text", "Remove BG", "Depth Map", "AI Upscale", "Vectorize"],
-      credits: "10-20 per use",
+      items: ["Remove Background (3)", "AI Upscale (3)", "3D Depth Map (10)", "Vectorize to SVG (4)"],
+      credits: "3-10 credits",
     },
     {
-      category: "Split Tools",
-      icon: Scissors,
-      color: "from-green-500 to-emerald-500",
-      items: ["Jigsaw Puzzle Generator", "Slice Images", "Grid Split"],
-      credits: "5-10 per use",
+      category: "Laser Engraving",
+      icon: Mountain,
+      color: "from-teal-500 to-cyan-500",
+      items: ["Professional Depth Maps", "Jigsaw Puzzle Templates (5)", "Slice & Grid Images (3)", "SVG Export"],
+      credits: "3-10 credits",
     },
     {
-      category: "Export Options",
+      category: "Export & Productivity",
       icon: Download,
-      color: "from-indigo-500 to-purple-500",
-      items: ["PNG, JPG, SVG", "Quality Control", "Batch Export"],
+      color: "from-green-500 to-emerald-500",
+      items: ["PNG, JPG, SVG Export", "Quality Settings", "Keyboard Shortcuts", "Auto-Save", "Undo/Redo"],
       credits: "Free",
     },
     {
-      category: "Productivity",
-      icon: Keyboard,
-      color: "from-yellow-500 to-amber-500",
-      items: ["Keyboard Shortcuts", "Undo/Redo", "Comparison Mode", "Zoom"],
-      credits: "Free",
+      category: "Professional Features",
+      icon: Layers,
+      color: "from-indigo-500 to-purple-500",
+      items: ["Add Custom Text (1)", "Image Comparison", "Real-time Preview", "Batch Processing Ready"],
+      credits: "1 credit",
     },
   ];
 
@@ -100,41 +100,41 @@ export default function LandingPage() {
       price: "$0",
       credits: 60,
       depthMaps: 6,
-      description: "Test the platform",
+      description: "Try it out",
       features: [
-        "60 credits/month",
+        "60 free credits on signup",
         "~6 depth maps",
-        "Basic tools",
-        "All effects",
-        "Export options",
+        "All basic tools & effects",
+        "Export in PNG/JPG/SVG",
+        "Community support",
       ],
       popular: false,
     },
     {
       name: "Starter",
-      price: "$14.99",
+      price: "$9.99",
       credits: 200,
       depthMaps: 20,
       description: "For hobbyists",
       features: [
         "200 credits/month",
         "~20 depth maps",
-        "All basic features",
-        "Priority support",
+        "All tools & effects",
+        "Email support",
         "HD exports",
       ],
       popular: false,
     },
     {
       name: "Pro",
-      price: "$29.99",
+      price: "$24.99",
       credits: 500,
       depthMaps: 50,
-      description: "Active creators",
+      description: "Most Popular",
       features: [
         "500 credits/month",
         "~50 depth maps",
-        "All features",
+        "All premium features",
         "Priority support",
         "Commercial license",
       ],
@@ -142,42 +142,26 @@ export default function LandingPage() {
     },
     {
       name: "Master",
-      price: "$59.99",
+      price: "$49.99",
       credits: 1200,
       depthMaps: 120,
-      description: "Small studios",
+      description: "Professional",
       features: [
         "1,200 credits/month",
         "~120 depth maps",
-        "All features",
-        "Premium support",
-        "Team collaboration",
-      ],
-      popular: false,
-    },
-    {
-      name: "Studio",
-      price: "$99.99",
-      credits: 2400,
-      depthMaps: 240,
-      description: "Heavy users",
-      features: [
-        "2,400 credits/month",
-        "~240 depth maps",
         "Unlimited basic tools",
-        "Premium support",
-        "API access",
+        "24/7 priority support",
+        "Advanced features",
       ],
       popular: false,
     },
   ];
 
   const creditPacks = [
-    { name: "Mini", credits: 80, price: "$9", popular: false },
-    { name: "Standard", credits: 200, price: "$19", popular: false },
-    { name: "Pro", credits: 500, price: "$39", popular: true },
-    { name: "Bulk", credits: 1200, price: "$79", popular: false },
-    { name: "Mega", credits: 2500, price: "$149", popular: false },
+    { name: "Small", credits: 100, price: "$5", popular: false },
+    { name: "Medium", credits: 350, price: "$15", bonus: "+50 bonus", popular: true },
+    { name: "Large", credits: 750, price: "$25", bonus: "+150 bonus", popular: false },
+    { name: "Mega", credits: 1600, price: "$40", bonus: "+400 bonus", popular: false },
   ];
 
 
@@ -512,6 +496,9 @@ export default function LandingPage() {
                   <div className="text-sm text-gray-400 mb-1">{pack.name}</div>
                   <div className="text-2xl font-bold mb-1">{pack.credits}</div>
                   <div className="text-sm text-gray-500 mb-2">credits</div>
+                  {pack.bonus && (
+                    <div className="text-xs text-green-400 font-semibold mb-2">{pack.bonus}</div>
+                  )}
                   <div className="text-xl font-bold text-blue-400 mb-3">
                     {pack.price}
                   </div>
