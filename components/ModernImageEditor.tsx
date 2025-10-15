@@ -602,12 +602,6 @@ export default function ModernImageEditor() {
                   Home
                 </a>
                 <a
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Library
-                </a>
-                <a
                   href="/subscription"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
@@ -751,12 +745,12 @@ export default function ModernImageEditor() {
 
             {/* Navigation Items */}
             <div className="flex items-center gap-6">
-              <button className="text-gray-300 hover:text-white font-medium transition-colors">
+              <a 
+                href="/"
+                className="text-gray-300 hover:text-white font-medium transition-colors"
+              >
                 Home
-              </button>
-              <button className="text-gray-300 hover:text-white font-medium transition-colors">
-                Library
-              </button>
+              </a>
               <a 
                 href="/subscription"
                 className="text-gray-300 hover:text-white font-medium transition-colors"
