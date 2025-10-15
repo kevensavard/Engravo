@@ -10,14 +10,19 @@ export default async function Dashboard() {
     redirect('/sign-in');
   }
 
-  // Sync user with database
-  await getOrCreateUser(
-    user.id,
-    user.emailAddresses[0]?.emailAddress || '',
-    user.firstName || undefined,
-    user.lastName || undefined,
-    user.imageUrl || undefined
-  );
+  try {
+    // Sync user with database
+    await getOrCreateUser(
+      user.id,
+      user.emailAddresses[0]?.emailAddress || '',
+      user.firstName || undefined,
+      user.lastName || undefined,
+      user.imageUrl || undefined
+    );
+  } catch (error) {
+    console.error('Error syncing user:', error);
+    // Continue anyway - the component will handle it
+  }
 
   return <ModernImageEditor />;
 }
