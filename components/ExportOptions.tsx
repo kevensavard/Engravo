@@ -92,7 +92,7 @@ export default function ExportOptions({ imageUrl, filename, onClose }: ExportOpt
     }
   };
 
-  const triggerDownload = async (url: string, filename: string) => {
+  const triggerDownload = (url: string, filename: string) => {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
@@ -100,20 +100,6 @@ export default function ExportOptions({ imageUrl, filename, onClose }: ExportOpt
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    // Mark the image as exported (extends retention to 48 hours)
-    try {
-      await fetch('/api/blob/mark-exported', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageUrl }),
-      });
-    } catch (error) {
-      console.error('Failed to mark as exported:', error);
-    }
-    
     onClose();
   };
 

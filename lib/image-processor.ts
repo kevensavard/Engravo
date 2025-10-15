@@ -7,10 +7,10 @@ export async function saveBuffer(buffer: Buffer, filename: string, userId?: stri
   const blobFilename = userId ? `uploads/${userId}/${filename}` : `uploads/${filename}`;
   const url = await uploadToBlob(buffer, blobFilename);
   
-  // Track the blob if userId is provided (will be cleaned up based on export status)
+  // Track the blob if userId is provided (will be cleaned up on next upload)
   if (userId) {
     const { trackBlob } = await import("./db/blobs");
-    await trackBlob(userId, url, false);
+    await trackBlob(userId, url);
   }
   
   return url;

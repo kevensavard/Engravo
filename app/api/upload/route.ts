@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // Delete all previous session blobs for this user (cleanup old images)
+    // Delete all previous blobs for this user (cleanup old images)
     await deleteUserSessionBlobs(user.id);
 
     // Convert file to buffer
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     // Upload to Vercel Blob
     const url = await uploadToBlob(buffer, filename);
 
-    // Track the blob for cleanup (not exported yet)
-    await trackBlob(user.id, url, false);
+    // Track the blob for cleanup
+    await trackBlob(user.id, url);
 
     return NextResponse.json({
       url,
