@@ -31,6 +31,7 @@ import {
   User,
   LogOut,
   ChevronDown,
+  Shield,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import InteractiveTextTool from "./InteractiveTextTool";
