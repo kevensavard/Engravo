@@ -4,7 +4,7 @@ import FormData from "form-data";
 import axios from "axios";
 import { deductCredits } from "@/lib/db/users";
 
-const SCULPTOK_API_KEY = "241a19123be54c60ac7a7251fafb588f";
+const SCULPTOK_API_KEY = process.env.SCULPTOK_API_KEY;
 const SCULPTOK_BASE_URL = "https://api.sculptok.com/api-open";
 
 export async function POST(request: NextRequest) {

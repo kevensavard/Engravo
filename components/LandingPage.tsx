@@ -228,6 +228,12 @@ export default function LandingPage() {
               >
                 Pricing
               </a>
+              <a
+                href="/contact"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Contact
+              </a>
               <a href="/dashboard">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500">
                   Start Free
@@ -582,11 +588,14 @@ export default function LandingPage() {
               <a href="#" className="hover:text-white transition-colors">
                 Docs
               </a>
-              <a href="#" className="hover:text-white transition-colors">
-                About
+              <a href="/contact" className="hover:text-white transition-colors">
+                Contact
               </a>
-              <a href="#" className="hover:text-white transition-colors">
-                Support
+              <a href="/privacy" className="hover:text-white transition-colors">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="hover:text-white transition-colors">
+                Terms of Service
               </a>
             </div>
             <div className="text-sm text-gray-500">

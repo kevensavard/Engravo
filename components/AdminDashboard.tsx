@@ -25,6 +25,9 @@ import {
   RefreshCw,
   Star,
   ArrowLeft,
+  Mail,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -75,12 +78,22 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState(false);
   const [editCredits, setEditCredits] = useState(0);
   const [editTier, setEditTier] = useState("");
-  const [activeTab, setActiveTab] = useState<"overview" | "users">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "users" | "messages">("overview");
+  const [contactMessages, setContactMessages] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [messageFilter, setMessageFilter] = useState("all");
 
   useEffect(() => {
     fetchAnalytics();
     fetchUsers();
+    fetchContactMessages();
   }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    if (activeTab === "messages") {
+      fetchContactMessages();
+    }
+  }, [messageFilter, activeTab]);
 
   const fetchAnalytics = async () => {
     try {
@@ -109,6 +122,49 @@ export default function AdminDashboard() {
       console.error("Failed to fetch users:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchContactMessages = async () => {
+    try {
+      const response = await fetch(`/api/admin/contact-messages?status=${messageFilter}`);
+      if (response.ok) {
+        const data = await response.json();
+        setContactMessages(data.messages);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Failed to fetch contact messages:", error);
+    }
+  };
+
+  const handleMarkAsRead = async (messageId: string) => {
+    try {
+      const response = await fetch(`/api/admin/contact-messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "read" }),
+      });
+      if (response.ok) {
+        fetchContactMessages();
+      }
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm("Delete this message?")) return;
+    
+    try {
+      const response = await fetch(`/api/admin/contact-messages/${messageId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        fetchContactMessages();
+      }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
     }
   };
 
@@ -211,6 +267,22 @@ export default function AdminDashboard() {
             >
               <Users className="w-4 h-4 inline mr-2" />
               User Management
+            </button>
+            <button
+              onClick={() => setActiveTab("messages")}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors relative ${
+                activeTab === "messages"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              <Mail className="w-4 h-4 inline mr-2" />
+              Contact Messages
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -540,6 +612,97 @@ export default function AdminDashboard() {
                     Next
                   </Button>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Messages Tab */}
+        {activeTab === "messages" && (
+          <div className="space-y-6">
+            {/* Filter */}
+            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Filter Messages</h3>
+                <Select value={messageFilter} onValueChange={setMessageFilter}>
+                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="all">All Messages</SelectItem>
+                    <SelectItem value="unread">Unread Only</SelectItem>
+                    <SelectItem value="read">Read</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Messages List */}
+            <div className="space-y-4">
+              {contactMessages.length === 0 ? (
+                <div className="bg-gray-800 rounded-xl p-12 text-center border border-gray-700">
+                  <Mail className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">No messages yet</p>
+                </div>
+              ) : (
+                contactMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`bg-gray-800 rounded-xl p-6 border ${
+                      msg.status === "unread"
+                        ? "border-blue-500/50 bg-blue-900/10"
+                        : "border-gray-700"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="text-lg font-semibold text-white">{msg.subject}</h4>
+                          {msg.status === "unread" && (
+                            <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full font-semibold">
+                              New
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <span>From: <strong className="text-gray-300">{msg.name}</strong></span>
+                          <span>•</span>
+                          <span>{msg.email}</span>
+                          <span>•</span>
+                          <span>{new Date(msg.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {msg.status === "unread" && (
+                          <Button
+                            onClick={() => handleMarkAsRead(msg.id)}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Mark Read
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          size="sm"
+                          variant="outline"
+                          className="border-red-600 text-red-400 hover:bg-red-600/20"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="bg-gray-900/50 rounded-lg p-4">
+                      <p className="text-gray-300 whitespace-pre-wrap">{msg.message}</p>
+                    </div>
+                    {msg.userId && (
+                      <div className="mt-3 text-xs text-gray-500">
+                        User ID: {msg.userId}
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
             </div>
           </div>

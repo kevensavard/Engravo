@@ -50,6 +50,18 @@ export const userBlobs = pgTable("user_blobs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Contact messages
+export const contactMessages = pgTable("contact_messages", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }), // Optional - can be from non-users
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").default("unread"), // unread, read, resolved
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(creditTransactions),

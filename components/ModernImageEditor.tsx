@@ -607,6 +607,12 @@ export default function ModernImageEditor() {
                 >
                   Subscription
                 </a>
+                <a
+                  href="/contact"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Contact
+                </a>
                 {isUserAdmin && (
                   <a
                     href="/admin"
@@ -756,6 +762,12 @@ export default function ModernImageEditor() {
                 className="text-gray-300 hover:text-white font-medium transition-colors"
               >
                 Subscription
+              </a>
+              <a 
+                href="/contact"
+                className="text-gray-300 hover:text-white font-medium transition-colors"
+              >
+                Contact
               </a>
               {isUserAdmin && (
                 <a
