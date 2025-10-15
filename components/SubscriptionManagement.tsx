@@ -31,6 +31,7 @@ interface SubscriptionPlan {
   color: string;
   bgGradient: string;
   buttonText: string;
+  priceId: string;
 }
 
 export default function SubscriptionManagement() {
@@ -38,6 +39,7 @@ export default function SubscriptionManagement() {
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Fetch user data
   useEffect(() => {
@@ -69,15 +71,73 @@ export default function SubscriptionManagement() {
     }
   };
 
+  const handleSubscribe = async (priceId: string) => {
+    setCheckoutLoading(true);
+    try {
+      const response = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          type: 'subscription',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleBuyCredits = async (priceId: string) => {
+    setCheckoutLoading(true);
+    try {
+      const response = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          type: 'payment',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const subscriptionPlans: SubscriptionPlan[] = [
     {
       id: 'starter',
       name: 'Starter',
       price: '$9.99',
       originalPrice: '$19.99',
-      credits: 300,
+      credits: 200,
       features: [
-        '300 Credits per month',
+        '200 Credits per month',
         'All Basic Tools',
         'Effects & Filters',
         'Export in PNG/JPG',
@@ -87,16 +147,17 @@ export default function SubscriptionManagement() {
       icon: <Star className="w-6 h-6" />,
       color: 'from-blue-500 to-blue-600',
       bgGradient: 'from-blue-50 to-blue-100',
-      buttonText: 'Upgrade to Starter'
+      buttonText: 'Upgrade to Starter',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER || 'price_1SIHp3Pv4WSX91ci85OgHwWq'
     },
     {
       id: 'pro',
       name: 'Pro',
       price: '$24.99',
       originalPrice: '$49.99',
-      credits: 1000,
+      credits: 500,
       features: [
-        '1000 Credits per month',
+        '500 Credits per month',
         'Everything in Starter',
         'Advanced Effects',
         'Vector Export',
@@ -107,16 +168,17 @@ export default function SubscriptionManagement() {
       icon: <Crown className="w-6 h-6" />,
       color: 'from-purple-500 to-purple-600',
       bgGradient: 'from-purple-50 to-purple-100',
-      buttonText: 'Upgrade to Pro'
+      buttonText: 'Upgrade to Pro',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || 'price_1SIHq3Pv4WSX91cifOyHIUyk'
     },
     {
       id: 'master',
       name: 'Master',
       price: '$49.99',
       originalPrice: '$99.99',
-      credits: 2500,
+      credits: 1200,
       features: [
-        '2500 Credits per month',
+        '1200 Credits per month',
         'Everything in Pro',
         'AI Background Removal',
         'Batch Processing',
@@ -127,7 +189,8 @@ export default function SubscriptionManagement() {
       icon: <Zap className="w-6 h-6" />,
       color: 'from-orange-500 to-red-500',
       bgGradient: 'from-orange-50 to-red-100',
-      buttonText: 'Upgrade to Master'
+      buttonText: 'Upgrade to Master',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MASTER || 'price_1SIHqnPv4WSX91ciNTUldv2L'
     }
   ];
 
@@ -135,30 +198,34 @@ export default function SubscriptionManagement() {
     {
       name: 'Small Pack',
       credits: 100,
-      price: '$4.99',
+      price: '$5.00',
       bonus: 0,
-      popular: false
+      popular: false,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SMALL_PACK || 'price_1SIHrXPv4WSX91cirzy1cHtu'
     },
     {
       name: 'Medium Pack',
       credits: 300,
-      price: '$12.99',
+      price: '$15.00',
       bonus: 50,
-      popular: true
+      popular: true,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MEDIUM_PACK || 'price_1SIHsQPv4WSX91ci6FHKlJEs'
     },
     {
       name: 'Large Pack',
       credits: 600,
-      price: '$24.99',
+      price: '$25.00',
       bonus: 150,
-      popular: false
+      popular: false,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_LARGE_PACK || 'price_1SIHt5Pv4WSX91ciqDGjyI4M'
     },
     {
       name: 'Mega Pack',
       credits: 1200,
-      price: '$44.99',
+      price: '$40.00',
       bonus: 400,
-      popular: false
+      popular: false,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MEGA_PACK || 'price_1SIHtfPv4WSX91ciGNBP6Zmj'
     }
   ];
 
@@ -288,10 +355,11 @@ export default function SubscriptionManagement() {
                   </ul>
                   
                   <Button
+                    onClick={() => handleSubscribe(plan.priceId)}
                     className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold py-3`}
-                    disabled={subscriptionTier === plan.id}
+                    disabled={subscriptionTier === plan.id || checkoutLoading}
                   >
-                    {subscriptionTier === plan.id ? 'Current Plan' : plan.buttonText}
+                    {checkoutLoading ? 'Loading...' : subscriptionTier === plan.id ? 'Current Plan' : plan.buttonText}
                   </Button>
                 </div>
               </motion.div>
@@ -344,8 +412,12 @@ export default function SubscriptionManagement() {
                   <div className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                     {pack.price}
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white font-semibold">
-                    Purchase Credits
+                  <Button 
+                    onClick={() => handleBuyCredits(pack.priceId)}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white font-semibold"
+                    disabled={checkoutLoading}
+                  >
+                    {checkoutLoading ? 'Loading...' : 'Purchase Credits'}
                   </Button>
                 </div>
               </motion.div>
