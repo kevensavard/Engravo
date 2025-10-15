@@ -87,6 +87,29 @@ export default function ModernImageEditor() {
     }
   }, [isLoaded, user]);
 
+  // Detect high zoom levels and add CSS class
+  useEffect(() => {
+    const detectZoom = () => {
+      // More accurate zoom detection using devicePixelRatio
+      const zoom = Math.round(window.devicePixelRatio * 100);
+      if (zoom >= 150) { // Lower threshold to catch more zoom levels
+        document.body.classList.add('high-zoom');
+      } else {
+        document.body.classList.remove('high-zoom');
+      }
+    };
+
+    // Check on mount and resize
+    detectZoom();
+    window.addEventListener('resize', detectZoom);
+    window.addEventListener('orientationchange', detectZoom);
+
+    return () => {
+      window.removeEventListener('resize', detectZoom);
+      window.removeEventListener('orientationchange', detectZoom);
+    };
+  }, []);
+
   // Auto-save image state to localStorage
   useEffect(() => {
     if (image) {
@@ -581,62 +604,69 @@ export default function ModernImageEditor() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         {/* Top Navigation Bar */}
         <nav className="border-b border-gray-800/50 bg-[#1a1f2e]/80 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+          <div className="w-full px-1 sm:px-2 md:px-4 lg:px-6 xl:px-8">
+            <div className="flex items-center justify-between h-12 sm:h-14 md:h-16 min-h-[3rem]">
               {/* Left: Logo & Brand */}
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 flex-shrink-0">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 md:w-5 md:h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="text-xs sm:text-sm md:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent whitespace-nowrap">
                   Engravo.app
                 </span>
               </div>
 
-              {/* Center: Navigation Links */}
-              <div className="flex items-center gap-6">
+              {/* Center: Navigation Links - Hidden on small screens, visible on larger */}
+              <div className="hidden md:flex items-center gap-2 xl:gap-3 2xl:gap-6 flex-shrink-0">
                 <a
                   href="/"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors text-xs xl:text-sm 2xl:text-base whitespace-nowrap"
                 >
                   Home
                 </a>
                 <a
                   href="/subscription"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors text-xs xl:text-sm 2xl:text-base whitespace-nowrap"
                 >
                   Subscription
                 </a>
                 <a
                   href="/contact"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors text-xs xl:text-sm 2xl:text-base whitespace-nowrap"
                 >
                   Contact
                 </a>
                 {isUserAdmin && (
                   <a
                     href="/admin"
-                    className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                    className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-0.5 xl:gap-1 text-xs xl:text-sm 2xl:text-base whitespace-nowrap"
                   >
-                    <Shield className="w-4 h-4" />
+                    <Shield className="w-2 h-2 xl:w-3 xl:h-3 2xl:w-4 2xl:h-4" />
                     Admin
                   </a>
                 )}
-              <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold">
-                Img Editor
-              </Button>
+                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold text-[10px] xl:text-xs 2xl:text-sm px-1 xl:px-2 2xl:px-4 py-0.5 xl:py-1 2xl:py-2 h-6 xl:h-7 2xl:h-9 whitespace-nowrap">
+                  Img Editor
+                </Button>
+              </div>
+
+              {/* Mobile Navigation Menu Button */}
+              <div className="md:hidden flex items-center gap-1">
+                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 sm:py-1 h-5 sm:h-7">
+                  Editor
+                </Button>
               </div>
 
               {/* Right: Credits & User Profile */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 xl:gap-4 flex-shrink-0">
                 {/* Credits Display */}
                 {isLoaded && userCredits !== null && (
                   <button
                     onClick={() => window.location.href = '/subscription'}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center gap-0.5 sm:gap-1 xl:gap-2 bg-green-600 hover:bg-green-700 px-1 sm:px-2 xl:px-3 py-0.5 sm:py-1 xl:py-2 rounded-lg transition-colors cursor-pointer"
                   >
-                    <Star className="w-4 h-4 text-white" />
-                    <span className="text-white font-medium">{userCredits} Credits</span>
+                    <Star className="w-2 h-2 sm:w-3 sm:h-3 xl:w-4 xl:h-4 text-white" />
+                    <span className="text-white font-medium text-[10px] sm:text-xs xl:text-sm whitespace-nowrap">{userCredits} Credits</span>
                   </button>
                 )}
 
@@ -645,7 +675,7 @@ export default function ModernImageEditor() {
                   <div className="relative profile-dropdown-container">
                     <button
                       onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                      className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center overflow-hidden hover:scale-105 transition-transform cursor-pointer"
+                      className="w-5 h-5 sm:w-6 sm:h-6 xl:w-8 xl:h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center overflow-hidden hover:scale-105 transition-transform cursor-pointer flex-shrink-0"
                     >
                       {user.imageUrl ? (
                         <img
@@ -654,7 +684,7 @@ export default function ModernImageEditor() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User className="w-5 h-5 text-white" />
+                        <User className="w-2 h-2 sm:w-3 sm:h-3 xl:w-5 xl:h-5 text-white" />
                       )}
                     </button>
                     
@@ -845,28 +875,29 @@ export default function ModernImageEditor() {
       </div>
 
       {/* Main Content with Bottom Toolbar */}
-      <div className="container mx-auto px-6 py-4 flex flex-col gap-4" style={{ height: 'calc(100vh - 80px)' }}>
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 flex-1 overflow-hidden">
+      <div className="w-full px-1 sm:px-2 md:px-4 lg:px-6 py-1 sm:py-2 md:py-4 flex flex-col gap-1 sm:gap-2 md:gap-4" style={{ height: 'calc(100vh - 3rem)' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] xl:grid-cols-[1fr_320px] 2xl:grid-cols-[1fr_360px] gap-1 sm:gap-2 md:gap-4 flex-1 overflow-hidden">
           {/* Left - Large Image Preview */}
           <div className="bg-[#1a1f2e] rounded-2xl shadow-2xl border border-gray-800/50 overflow-hidden flex flex-col">
             {/* Top Bar with Compare Toggle */}
-            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-3 border-b border-gray-800/50 flex items-center justify-between">
-              <h2 className="text-white font-semibold text-sm">Preview</h2>
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-2 sm:p-3 border-b border-gray-800/50 flex items-center justify-between">
+              <h2 className="text-white font-semibold text-xs sm:text-sm">Preview</h2>
               <Button
                 onClick={() => setShowComparison(!showComparison)}
                 disabled={processing || historyIndex === 0}
                 size="sm"
                 variant="outline"
-                className="bg-gray-800/50 hover:bg-gray-700/50 text-white border-gray-700/50 text-xs h-8"
+                className="bg-gray-800/50 hover:bg-gray-700/50 text-white border-gray-700/50 text-[10px] sm:text-xs h-6 sm:h-8 px-2 sm:px-3"
               >
-                <ArrowLeftRight className="w-3 h-3 mr-1.5" />
-                {showComparison ? 'Hide' : 'Show'} Compare
+                <ArrowLeftRight className="w-2 h-2 sm:w-3 sm:h-3 mr-1 sm:mr-1.5" />
+                <span className="hidden sm:inline">{showComparison ? 'Hide' : 'Show'} Compare</span>
+                <span className="sm:hidden">{showComparison ? 'Hide' : 'Show'}</span>
               </Button>
             </div>
 
             {/* Image Canvas */}
-            <div className="flex-1 p-4 flex items-center justify-center overflow-hidden">
-              <div className="bg-[#0d1117] rounded-xl w-full h-full flex items-center justify-center relative border border-gray-800/30">
+            <div className="flex-1 p-2 sm:p-4 flex items-center justify-center overflow-hidden">
+              <div className="bg-[#0d1117] rounded-xl w-full h-full flex items-center justify-center relative border border-gray-800/30 min-h-0">
                 {/* Dark Checkerboard Pattern */}
                 <div className="absolute inset-0 pointer-events-none" style={{
                   backgroundImage: `
@@ -885,25 +916,33 @@ export default function ModernImageEditor() {
                     <p className="text-white font-semibold">Processing...</p>
                   </div>
                 ) : showComparison && originalImage ? (
-                  <div className="grid grid-cols-2 gap-4 w-full h-full relative z-10 p-4">
-                    <div className="space-y-2 flex flex-col h-full">
+                  <div className="grid grid-cols-2 gap-2 w-full h-full relative z-10 p-2 min-h-0">
+                    <div className="space-y-1 flex flex-col h-full min-h-0">
                       <div className="text-xs font-medium text-gray-400 text-center">Original</div>
-                      <div className="bg-[#1a1f2e] rounded-lg p-2 shadow-lg border border-gray-800/50 flex-1 flex items-center justify-center">
+                      <div className="bg-[#1a1f2e] rounded-lg p-1 shadow-lg border border-gray-800/50 flex-1 flex items-center justify-center min-h-0">
                         <img
                           src={originalImage.url}
                           alt="Original"
                           className="max-w-full max-h-full object-contain rounded"
+                          style={{ 
+                            maxHeight: '100%',
+                            maxWidth: '100%'
+                          }}
                         />
                       </div>
                     </div>
-                    <div className="space-y-2 flex flex-col h-full">
+                    <div className="space-y-1 flex flex-col h-full min-h-0">
                       <div className="text-xs font-medium text-blue-400 text-center">Edited</div>
-                      <div className="bg-[#1a1f2e] rounded-lg p-2 shadow-lg ring-2 ring-blue-500/50 border border-gray-800/50 flex-1 flex items-center justify-center">
+                      <div className="bg-[#1a1f2e] rounded-lg p-1 shadow-lg ring-2 ring-blue-500/50 border border-gray-800/50 flex-1 flex items-center justify-center min-h-0">
                         <img
                           src={image.url}
                           alt="Edited"
                           className="max-w-full max-h-full object-contain rounded transition-transform duration-200"
-                          style={{ transform: `scale(${zoom})` }}
+                          style={{ 
+                            transform: `scale(${zoom})`,
+                            maxHeight: '100%',
+                            maxWidth: '100%'
+                          }}
                         />
                       </div>
                     </div>
@@ -912,40 +951,44 @@ export default function ModernImageEditor() {
                   <img
                     src={image.url}
                     alt="Preview"
-                    className="max-w-full max-h-full object-contain relative z-10 p-4 transition-transform duration-200"
-                    style={{ transform: `scale(${zoom})` }}
+                    className="max-w-full max-h-full object-contain relative z-10 p-2 transition-transform duration-200"
+                    style={{ 
+                      transform: `scale(${zoom})`,
+                      maxHeight: '100%',
+                      maxWidth: '100%'
+                    }}
                   />
                 )}
               </div>
             </div>
 
             {/* Info Bar */}
-            <div className="p-3 border-t border-gray-800/50 flex items-center justify-between bg-gradient-to-r from-gray-900/30 to-gray-800/30">
-              <div className="text-xs text-gray-400">
+            <div className="p-2 sm:p-3 border-t border-gray-800/50 flex items-center justify-between bg-gradient-to-r from-gray-900/30 to-gray-800/30">
+              <div className="text-[10px] sm:text-xs text-gray-400">
                 <span className="font-medium">{image.width} × {image.height}px</span>
-                <span className="mx-2">•</span>
-                <span className="text-gray-500 text-[10px]">{image.filename}</span>
+                <span className="mx-1 sm:mx-2">•</span>
+                <span className="text-gray-500 text-[8px] sm:text-[10px] truncate max-w-[100px] sm:max-w-none">{image.filename}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   onClick={undo}
                   disabled={historyIndex <= 0 || processing}
                   size="sm"
                   variant="ghost"
-                  className="h-7 px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  className="h-5 sm:h-7 px-1 sm:px-2 text-[10px] sm:text-xs text-gray-400 hover:text-white hover:bg-gray-800/50"
                 >
-                  <Undo className="w-3 h-3" />
+                  <Undo className="w-2 h-2 sm:w-3 sm:h-3" />
                 </Button>
                 <Button
                   onClick={redo}
                   disabled={historyIndex >= history.length - 1 || processing}
                   size="sm"
                   variant="ghost"
-                  className="h-7 px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  className="h-5 sm:h-7 px-1 sm:px-2 text-[10px] sm:text-xs text-gray-400 hover:text-white hover:bg-gray-800/50"
                 >
-                  <Redo className="w-3 h-3" />
+                  <Redo className="w-2 h-2 sm:w-3 sm:h-3" />
                 </Button>
-                <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/30">
+                <span className="text-[8px] sm:text-[10px] bg-blue-500/20 text-blue-400 px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium border border-blue-500/30">
                   {history.length} {history.length === 1 ? 'edit' : 'edits'}
                 </span>
               </div>
@@ -953,9 +996,9 @@ export default function ModernImageEditor() {
           </div>
 
           {/* Right Sidebar - Tool Options Panel (changes based on selected tool) */}
-          <div className="bg-[#1a1f2e] rounded-2xl shadow-2xl border border-gray-800/50 overflow-hidden flex flex-col">
-            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-3 border-b border-gray-800/50">
-              <h2 className="text-white font-semibold text-sm">
+          <div className="bg-[#1a1f2e] rounded-2xl shadow-2xl border border-gray-800/50 overflow-hidden flex flex-col max-h-full">
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-2 sm:p-3 border-b border-gray-800/50">
+              <h2 className="text-white font-semibold text-xs sm:text-sm">
                 {activeTool === 'color' ? 'Color Adjust' : 
                  activeTool === 'basic' ? 'Basic Tools' : 
                  activeTool === 'effects' ? 'Effects' :
@@ -970,7 +1013,7 @@ export default function ModernImageEditor() {
               </h2>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4">
               {/* Basic Tools */}
               {activeTool === 'basic' && (
                 <div className="space-y-4">

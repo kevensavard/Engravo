@@ -104,3 +104,145 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Zoom-aware responsive design */
+/* Force horizontal scroll for toolbar */
+.overflow-x-auto {
+  overflow-x: auto !important;
+  scrollbar-width: thin;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 2px;
+}
+
+/* High zoom level detection and fixes - handled by JavaScript + body.high-zoom class */
+
+/* JavaScript-detected high zoom styles */
+body.high-zoom {
+  /* Force smaller navigation */
+  nav {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    height: 3rem !important;
+  }
+  
+  /* Force single column layout */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Make toolbar scroll horizontally */
+  .overflow-x-auto {
+    overflow-x: scroll !important;
+    white-space: nowrap;
+    scrollbar-width: thin;
+  }
+  
+  /* Reduce all button sizes */
+  button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    height: auto !important;
+  }
+  
+  /* Reduce all icon sizes */
+  svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+  
+  /* Reduce text sizes */
+  .text-sm, .text-xs, .text-lg, .text-xl {
+    font-size: 0.625rem !important;
+  }
+  
+  /* Reduce panel padding */
+  .p-2, .p-3, .p-4 {
+    padding: 0.5rem !important;
+  }
+  
+  /* Reduce gaps */
+  .gap-1, .gap-2, .gap-3, .gap-4 {
+    gap: 0.25rem !important;
+  }
+  
+  /* Make borders thinner at high zoom */
+  .border {
+    border-width: 1px !important;
+  }
+  
+  .border-2 {
+    border-width: 1px !important;
+  }
+  
+  .border-4 {
+    border-width: 1px !important;
+  }
+  
+  .border-8 {
+    border-width: 1px !important;
+  }
+  
+  /* Reduce ring widths */
+  .ring-2 {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5) !important;
+  }
+  
+  .ring-4 {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5) !important;
+  }
+  
+  /* Reduce border radius for more space */
+  .rounded-xl, .rounded-2xl, .rounded-3xl {
+    border-radius: 0.375rem !important;
+  }
+  
+  /* Reduce shadow sizes */
+  .shadow-xl, .shadow-2xl {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* Reduce border opacity for less visual weight */
+  .border-gray-800\/50, .border-gray-700\/50 {
+    border-color: rgba(75, 85, 99, 0.3) !important;
+  }
+}
+
+/* Ensure image preview shows full image */
+.flex-1 {
+  min-height: 0 !important;
+}
+
+/* Fix image preview container */
+.rounded-xl {
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+/* Ensure images fit properly */
+img {
+  object-fit: contain !important;
+  max-height: 100% !important;
+  max-width: 100% !important;
+}

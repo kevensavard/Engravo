@@ -22,6 +22,7 @@ export default async function Dashboard() {
   } catch (error) {
     console.error('Error syncing user:', error);
     // Continue anyway - the component will handle it
+    // This prevents crashes when there are database issues
   }
 
   return <ModernImageEditor />;
