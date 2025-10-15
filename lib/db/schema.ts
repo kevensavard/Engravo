@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   subscriptionTier: text("subscription_tier").default("free"), // free, starter, pro, master, studio
   subscriptionStatus: text("subscription_status").default("active"), // active, cancelled, expired
   subscriptionEndsAt: timestamp("subscription_ends_at"),
+  isAdmin: boolean("is_admin").default(false), // Admin access
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

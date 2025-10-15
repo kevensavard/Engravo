@@ -67,6 +67,7 @@ export default function ModernImageEditor() {
   const [showKeyboardLegend, setShowKeyboardLegend] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNewImageModal, setShowNewImageModal] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
@@ -135,13 +136,22 @@ export default function ModernImageEditor() {
 
   const fetchUserCredits = async () => {
     try {
-      const response = await fetch('/api/user/credits');
-      if (response.ok) {
-        const data = await response.json();
+      const [creditsResponse, profileResponse] = await Promise.all([
+        fetch('/api/user/credits'),
+        fetch('/api/user/profile')
+      ]);
+      
+      if (creditsResponse.ok) {
+        const data = await creditsResponse.json();
         setUserCredits(data.credits);
       }
+      
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        setIsUserAdmin(profileData.isAdmin || false);
+      }
     } catch (error) {
-      console.error('Failed to fetch credits:', error);
+      console.error('Failed to fetch user data:', error);
     }
   };
 
@@ -599,6 +609,15 @@ export default function ModernImageEditor() {
                 >
                   Subscription
                 </a>
+                {isUserAdmin && (
+                  <a
+                    href="/admin"
+                    className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </a>
+                )}
               <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-gray-900 font-semibold">
                 Img Editor
               </Button>
@@ -740,6 +759,15 @@ export default function ModernImageEditor() {
               >
                 Subscription
               </a>
+              {isUserAdmin && (
+                <a
+                  href="/admin"
+                  className="text-red-400 hover:text-red-300 font-medium transition-colors flex items-center gap-1"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin
+                </a>
+              )}
               <button 
                 onClick={handleNewImage}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
