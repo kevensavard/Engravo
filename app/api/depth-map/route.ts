@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import path from "path";
-import fs from "fs/promises";
 import FormData from "form-data";
 import axios from "axios";
 import { deductCredits } from "@/lib/db/users";
@@ -33,10 +31,13 @@ export async function POST(request: NextRequest) {
 
     console.log("Depth map processing via SculptOK API for:", imageUrl);
     
-    // Step 1: Read the local image file
-    const inputPath = path.join(process.cwd(), "public", imageUrl);
-    const imageBuffer = await fs.readFile(inputPath);
-    const filename = path.basename(inputPath);
+    // Step 1: Download image from URL (Vercel Blob)
+    const cleanUrl = imageUrl.split('?')[0];
+    const imageResponse = await axios.get(cleanUrl, {
+      responseType: 'arraybuffer'
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
+    const filename = `image-${Date.now()}.png`;
     
     // Step 2: Upload image to SculptOK
     console.log("Uploading image to SculptOK...");
@@ -139,20 +140,21 @@ export async function POST(request: NextRequest) {
       responseType: "arraybuffer",
     });
 
-    // Step 7: Save to local uploads directory
+    // Step 7: Upload to Vercel Blob
     const timestamp = Date.now();
     const outputFilename = `${timestamp}-depth-map.png`;
-    const outputPath = path.join(process.cwd(), "public", "uploads", outputFilename);
+    const depthMapBuffer = Buffer.from(depthMapResponse.data);
     
-    await fs.writeFile(outputPath, depthMapResponse.data);
-    console.log("Depth map saved locally:", outputFilename);
+    const { uploadToBlob } = await import("@/lib/storage");
+    const blobUrl = await uploadToBlob(depthMapBuffer, `uploads/${outputFilename}`);
+    console.log("Depth map uploaded to Blob:", blobUrl);
 
     // Step 8: Get remaining credits and return success response with all variants
     const { getUserCredits } = await import("@/lib/db/users");
     const creditsRemaining = await getUserCredits(user.id);
 
     return NextResponse.json({
-      url: `/uploads/${outputFilename}`,
+      url: blobUrl,
       filename: outputFilename,
       promptId,
       sculptokUrl: selectedImageUrl,

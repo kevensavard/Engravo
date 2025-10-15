@@ -1,34 +1,20 @@
 import sharp from "sharp";
 import { createCanvas, loadImage, CanvasRenderingContext2D } from "canvas";
-import * as fs from "fs/promises";
-import * as path from "path";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-
-// Ensure upload directory exists
-export async function ensureUploadDir() {
-  try {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  } catch (error) {
-    console.error("Error creating upload directory:", error);
-  }
-}
+import { uploadToBlob, loadImageFromUrl } from "./storage";
 
 export async function saveBuffer(buffer: Buffer, filename: string): Promise<string> {
-  await ensureUploadDir();
-  const filepath = path.join(UPLOAD_DIR, filename);
-  await fs.writeFile(filepath, buffer);
-  return `/uploads/${filename}`;
+  // Upload to Vercel Blob and return the URL
+  const blobFilename = `uploads/${filename}`;
+  return await uploadToBlob(buffer, blobFilename);
 }
 
 export async function loadImageBuffer(imageUrl: string): Promise<Buffer> {
-  // Strip query parameters (like ?t=timestamp) from the URL for file reading
+  // Strip query parameters (like ?t=timestamp) from the URL
   const cleanUrl = imageUrl.split('?')[0];
-  const filepath = path.join(process.cwd(), "public", cleanUrl);
-  console.log("Loading image from:", filepath);
+  console.log("Loading image from URL:", cleanUrl);
   
   try {
-    const buffer = await fs.readFile(filepath);
+    const buffer = await loadImageFromUrl(cleanUrl);
     console.log("Image loaded successfully, size:", buffer.length);
     
     // Validate that this is actually an image by trying to get metadata
@@ -38,7 +24,7 @@ export async function loadImageBuffer(imageUrl: string): Promise<Buffer> {
       return buffer;
     } catch (validationError) {
       console.error("Image validation failed:", validationError);
-      throw new Error(`Invalid image file: ${validationError.message}`);
+      throw new Error(`Invalid image file: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
     }
   } catch (error) {
     console.error("Error loading image:", error);

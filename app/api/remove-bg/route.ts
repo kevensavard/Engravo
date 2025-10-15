@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import path from "path";
 import axios from "axios";
 import { saveBuffer, getImageMetadata } from "@/lib/image-processor";
 import { deductCredits } from "@/lib/db/users";
@@ -39,21 +37,22 @@ export async function POST(request: NextRequest) {
 
     console.log("Remove background: Processing image:", imageUrl);
 
-    // Step 1: Read local image file (strip query parameters)
+    // Step 1: Download image from URL (Vercel Blob)
     const cleanUrl = imageUrl.split('?')[0];
-    const localPath = path.join(process.cwd(), "public", cleanUrl);
-    console.log("Remove background: Reading local file:", localPath);
+    console.log("Remove background: Downloading from:", cleanUrl);
     
-    if (!fs.existsSync(localPath)) {
-      throw new Error(`Image file not found: ${localPath}`);
-    }
+    const imageResponse = await axios.get(cleanUrl, {
+      responseType: 'arraybuffer'
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
 
-    // Step 2: Upload to Cloudinary (regular upload first)
+    // Step 2: Upload to Cloudinary (from buffer)
     console.log("Remove background: Uploading to Cloudinary...");
     
-    const uploadResult = await cloudinary.uploader.upload(localPath, {
-      resource_type: "image"
-    });
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:image/png;base64,${imageBuffer.toString('base64')}`,
+      { resource_type: "image" }
+    );
 
     console.log("Remove background: Image uploaded, public_id:", uploadResult.public_id);
 

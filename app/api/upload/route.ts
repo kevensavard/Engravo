@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveBuffer, getImageMetadata } from "@/lib/image-processor";
+import { getImageMetadata } from "@/lib/image-processor";
+import { uploadToBlob } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +20,10 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name}`;
+    const filename = `uploads/${timestamp}-${file.name}`;
 
-    // Save file
-    const url = await saveBuffer(buffer, filename);
+    // Upload to Vercel Blob
+    const url = await uploadToBlob(buffer, filename);
 
     return NextResponse.json({
       url,
