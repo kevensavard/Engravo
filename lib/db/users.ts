@@ -5,12 +5,37 @@ import { nanoid } from "nanoid";
 
 // Get or create user
 export async function getOrCreateUser(clerkUserId: string, email: string, firstName?: string, lastName?: string, imageUrl?: string) {
-  const existingUser = await db.query.users.findFirst({
+  // First check by Clerk user ID
+  let existingUser = await db.query.users.findFirst({
     where: eq(users.id, clerkUserId),
   });
 
   if (existingUser) {
     return existingUser;
+  }
+
+  // Check if user exists with this email (might be from different auth method)
+  existingUser = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
+
+  if (existingUser) {
+    // User exists with same email but different Clerk ID
+    // Update the user's Clerk ID and return
+    await db.update(users)
+      .set({
+        id: clerkUserId,
+        firstName: firstName || existingUser.firstName,
+        lastName: lastName || existingUser.lastName,
+        imageUrl: imageUrl || existingUser.imageUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.email, email));
+    
+    // Return the updated user
+    return await db.query.users.findFirst({
+      where: eq(users.id, clerkUserId),
+    });
   }
 
   // Create new user with free tier credits
