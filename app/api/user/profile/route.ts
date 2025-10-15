@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       subscriptionTier: profile.subscriptionTier,
       subscriptionStatus: profile.subscriptionStatus,
       subscriptionEndsAt: profile.subscriptionEndsAt,
+      isAdmin: profile.isAdmin || false,
       createdAt: profile.createdAt,
     });
   } catch (error) {
