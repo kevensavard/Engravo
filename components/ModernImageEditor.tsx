@@ -32,6 +32,7 @@ import {
   LogOut,
   ChevronDown,
   Shield,
+  Crown,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import InteractiveTextTool from "./InteractiveTextTool";
@@ -68,6 +69,7 @@ export default function ModernImageEditor() {
   const [showKeyboardLegend, setShowKeyboardLegend] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
   const [isUserAdmin, setIsUserAdmin] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNewImageModal, setShowNewImageModal] = useState(false);
@@ -150,6 +152,7 @@ export default function ModernImageEditor() {
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         setIsUserAdmin(profileData.isAdmin || false);
+        setSubscriptionTier(profileData.subscriptionTier || 'free');
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -1039,18 +1042,43 @@ export default function ModernImageEditor() {
                   <div className="flex items-center gap-2 text-white">
                     <Mountain className="w-5 h-5 text-gray-400" />
                     <h3 className="font-semibold text-sm">Depth Map</h3>
+                    {subscriptionTier === 'free' && (
+                      <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded-full font-semibold">
+                        Premium
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400">
                     AI-powered depth map for 3D laser engraving
                   </p>
-                  <Button
-                    onClick={() => processWithCredits("Depth Map", "depthMap", "depth-map")}
-                    disabled={processing}
-                    className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 flex items-center justify-center gap-2"
-                  >
-                    <Star className="w-4 h-4" />
-                    Generate Depth Map ({CREDIT_COSTS.depthMap} credits)
-                  </Button>
+                  {subscriptionTier === 'free' ? (
+                    <div className="space-y-3">
+                      <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-4">
+                        <p className="text-sm text-orange-300 mb-2">
+                          🔒 <strong>Premium Feature</strong>
+                        </p>
+                        <p className="text-xs text-orange-200/80">
+                          Depth Map generation is available on Starter plan and above. Upgrade to unlock professional 3D depth maps for laser engraving.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => window.location.href = '/subscription'}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 flex items-center justify-center gap-2"
+                      >
+                        <Crown className="w-4 h-4" />
+                        Upgrade to Unlock Depth Maps
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => processWithCredits("Depth Map", "depthMap", "depth-map")}
+                      disabled={processing}
+                      className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 flex items-center justify-center gap-2"
+                    >
+                      <Star className="w-4 h-4" />
+                      Generate Depth Map ({CREDIT_COSTS.depthMap} credits)
+                    </Button>
+                  )}
                 </div>
               )}
 

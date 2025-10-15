@@ -99,14 +99,14 @@ export default function LandingPage() {
       name: "Free",
       price: "$0",
       credits: 60,
-      depthMaps: 6,
+      depthMaps: 0,
       description: "Try it out",
       features: [
         "60 free credits on signup",
-        "~6 depth maps",
         "All basic tools & effects",
         "Export in PNG/JPG/SVG",
         "Community support",
+        "❌ No depth maps (Premium only)",
       ],
       popular: false,
     },
@@ -118,7 +118,7 @@ export default function LandingPage() {
       description: "For hobbyists",
       features: [
         "200 credits/month",
-        "~20 depth maps",
+        "✅ ~20 depth maps included",
         "All tools & effects",
         "Email support",
         "HD exports",
@@ -133,7 +133,7 @@ export default function LandingPage() {
       description: "Most Popular",
       features: [
         "500 credits/month",
-        "~50 depth maps",
+        "✅ ~50 depth maps included",
         "All premium features",
         "Priority support",
         "Commercial license",
@@ -148,7 +148,7 @@ export default function LandingPage() {
       description: "Professional",
       features: [
         "1,200 credits/month",
-        "~120 depth maps",
+        "✅ ~120 depth maps included",
         "Unlimited basic tools",
         "24/7 priority support",
         "Advanced features",

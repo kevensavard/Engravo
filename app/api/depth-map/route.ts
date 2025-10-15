@@ -21,6 +21,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    // Check subscription tier - depth maps only for paid users
+    const { getUserProfile } = await import("@/lib/db/users");
+    const userProfile = await getUserProfile(user.id);
+    
+    if (userProfile.subscriptionTier === 'free') {
+      return NextResponse.json({ 
+        error: "Depth Map is a premium feature. Please upgrade to Starter, Pro, or Master plan to unlock this feature.",
+        requiresUpgrade: true 
+      }, { status: 403 });
+    }
+
     // Deduct credits
     const creditCost = 10; // Depth map costs 10 credits
     const creditDeducted = await deductCredits(user.id, creditCost, "depthMap", "Applied depth map generation");
