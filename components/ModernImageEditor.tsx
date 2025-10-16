@@ -89,6 +89,16 @@ export default function ModernImageEditor() {
     }
   }, [isLoaded, user]);
 
+  // Load vectorized SVG URL from localStorage on mount
+  useEffect(() => {
+    if (image) {
+      const storedVectorizedUrl = localStorage.getItem(`vectorized_${image.url}`);
+      if (storedVectorizedUrl) {
+        setVectorizedSvgUrl(storedVectorizedUrl);
+      }
+    }
+  }, [image]);
+
   // Detect high zoom levels and add CSS class
   useEffect(() => {
     const detectZoom = () => {
@@ -212,6 +222,11 @@ export default function ModernImageEditor() {
     // Clear localStorage
     localStorage.removeItem('engravo-app-state');
     
+    // Clear vectorized SVG from localStorage
+    if (image) {
+      localStorage.removeItem(`vectorized_${image.url}`);
+    }
+    
     // Close modal
     setShowNewImageModal(false);
     
@@ -274,6 +289,9 @@ export default function ModernImageEditor() {
        if (endpoint === 'vectorize' && result.downloadUrl) {
          // Store the vectorized SVG URL for export options
          setVectorizedSvgUrl(result.downloadUrl);
+         
+         // Persist in localStorage so it survives page refreshes
+         localStorage.setItem(`vectorized_${image.url}`, result.downloadUrl);
          
          // Show success modal
          setShowVectorizeSuccessModal(true);

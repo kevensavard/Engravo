@@ -64,12 +64,20 @@ export default function ExportOptions({ imageUrl, filename, vectorizedSvgUrl, on
         img.src = imageUrl;
         return;
       } else if (format === "svg") {
-        // If we have a vectorized SVG, use it directly
+        // If we have a vectorized SVG, fetch it and download properly
         if (vectorizedSvgUrl) {
-          downloadUrl = vectorizedSvgUrl;
-          downloadFilename = filename.replace(/\.(png|jpg|jpeg)$/i, `.svg`);
-          triggerDownload(downloadUrl, downloadFilename);
-          return;
+          try {
+            const svgResponse = await fetch(vectorizedSvgUrl);
+            const svgBlob = await svgResponse.blob();
+            downloadUrl = URL.createObjectURL(svgBlob);
+            downloadFilename = filename.replace(/\.(png|jpg|jpeg)$/i, `.svg`);
+            triggerDownload(downloadUrl, downloadFilename);
+            return;
+          } catch (error) {
+            console.error("Error fetching SVG:", error);
+            alert("Failed to download SVG file");
+            return;
+          }
         }
         
         // Otherwise, create a simple wrapper SVG (not recommended)
