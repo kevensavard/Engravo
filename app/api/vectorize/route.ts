@@ -4,42 +4,87 @@ import { loadImageBuffer, saveBuffer } from "@/lib/image-processor";
 import { deductCredits } from "@/lib/db/users";
 import { getCreditCost } from "@/lib/credit-costs";
 import sharp from "sharp";
+import { spawn } from "child_process";
+import fs from "fs/promises";
+import path from "path";
 
-// Simple effective vectorization - creates clean SVG like Illustrator
+// Professional Python-based vectorization
 async function createAdvancedSVG(buffer: Buffer, width: number, height: number): Promise<string> {
-  // Create a clean SVG that actually works like Illustrator
-  const svgContent = await createCleanWorkingSVG(buffer, width, height);
-  
-  return svgContent;
+  return await runPythonVectorization(buffer);
 }
 
-// Create a clean working SVG that actually looks good
-async function createCleanWorkingSVG(buffer: Buffer, width: number, height: number): Promise<string> {
-  // Process the image to create a clean vectorized version
-  const processedImage = await sharp(buffer)
-    .greyscale()
-    .normalize()
-    .threshold(128)
-    .png()
-    .toBuffer();
+// Run Python vectorization script
+async function runPythonVectorization(buffer: Buffer): Promise<string> {
+  const tempDir = path.join(process.cwd(), 'temp');
+  await fs.mkdir(tempDir, { recursive: true });
   
-  // Convert to base64 for embedding
-  const base64 = processedImage.toString('base64');
+  const inputPath = path.join(tempDir, `input_${Date.now()}.png`);
+  const outputPath = path.join(tempDir, `output_${Date.now()}.svg`);
   
-  // Create a clean SVG with the processed image
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="vectorize">
-      <feMorphology operator="dilate" radius="0.5"/>
-      <feGaussianBlur stdDeviation="0.2"/>
-    </filter>
-  </defs>
-  <image href="data:image/png;base64,${base64}" 
-         width="${width}" height="${height}" 
-         filter="url(#vectorize)"
-         preserveAspectRatio="xMidYMid meet"/>
-</svg>`;
+  try {
+    // Save input image
+    await fs.writeFile(inputPath, buffer);
+    
+    // Run Python vectorization script
+    const pythonScript = path.join(process.cwd(), 'vectorize.py');
+    const result = await runPythonScript(pythonScript, [inputPath, outputPath]);
+    
+    if (!result.success) {
+      throw new Error(`Python vectorization failed: ${result.error}`);
+    }
+    
+    // Read the generated SVG
+    const svgContent = await fs.readFile(outputPath, 'utf8');
+    
+    // Clean up temporary files
+    await fs.unlink(inputPath).catch(() => {});
+    await fs.unlink(outputPath).catch(() => {});
+    
+    return svgContent;
+    
+  } catch (error) {
+    // Clean up temporary files on error
+    await fs.unlink(inputPath).catch(() => {});
+    await fs.unlink(outputPath).catch(() => {});
+    throw error;
+  }
+}
+
+// Execute Python script
+async function runPythonScript(scriptPath: string, args: string[]): Promise<{success: boolean, error?: string, output?: any}> {
+  return new Promise((resolve) => {
+    const python = spawn('python3', [scriptPath, ...args]);
+    let stdout = '';
+    let stderr = '';
+    
+    python.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    python.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          // Parse JSON output from Python script
+          const lines = stdout.trim().split('\n');
+          const jsonLine = lines[lines.length - 1];
+          const output = JSON.parse(jsonLine);
+          resolve({ success: output.success, output });
+        } catch (e) {
+          resolve({ success: false, error: `Failed to parse Python output: ${stdout}` });
+        }
+      } else {
+        resolve({ success: false, error: `Python script failed: ${stderr}` });
+      }
+    });
+    
+    python.on('error', (error) => {
+      resolve({ success: false, error: `Failed to run Python script: ${error.message}` });
+    });
+  });
 }
 
 
@@ -203,15 +248,15 @@ export async function POST(request: NextRequest) {
       format: "svg",
       creditsRemaining,
       downloadUrl: blobUrl, // Direct download URL for SVG
-      message: "Image successfully vectorized with clean processing! Creates a clean SVG with threshold processing and vector filters for professional results.",
-      quality: "clean", // Indicate clean vectorization
+      message: "Image successfully vectorized with professional Python algorithms! Uses OpenCV, K-means clustering, Canny edge detection, and Bezier curve fitting for Illustrator-quality results.",
+      quality: "professional", // Indicate professional vectorization
       features: [
-        "Clean threshold processing",
-        "Professional SVG filters",
-        "Embedded vector image",
-        "Clean black and white output",
-        "Reliable vectorization",
-        "Infinite scaling without pixelation",
+        "OpenCV-based edge detection",
+        "K-means color clustering",
+        "Canny edge detection with adaptive thresholds",
+        "Ramer-Douglas-Peucker contour simplification",
+        "Cubic Bezier curve fitting",
+        "Professional SVG output with gradients",
         "100% free & open-source"
       ]
     });
