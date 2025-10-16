@@ -8,10 +8,11 @@ import { Download, FileImage, FileCode, X } from "lucide-react";
 interface ExportOptionsProps {
   imageUrl: string;
   filename: string;
+  vectorizedSvgUrl?: string | null;
   onClose: () => void;
 }
 
-export default function ExportOptions({ imageUrl, filename, onClose }: ExportOptionsProps) {
+export default function ExportOptions({ imageUrl, filename, vectorizedSvgUrl, onClose }: ExportOptionsProps) {
   const [format, setFormat] = useState<"png" | "jpg" | "svg">("png");
   const [quality, setQuality] = useState(90);
   const [size, setSize] = useState<"original" | "custom">("original");
@@ -63,22 +64,16 @@ export default function ExportOptions({ imageUrl, filename, onClose }: ExportOpt
         img.src = imageUrl;
         return;
       } else if (format === "svg") {
-        // For SVG, we'll create a simple wrapper SVG
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        
-        img.onload = () => {
-          const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}" viewBox="0 0 ${img.width} ${img.height}">
-          <image href="${imageUrl}" width="${img.width}" height="${img.height}"/>
-        </svg>`;
-          
-          const svgBlob = new Blob([svgContent], { type: "image/svg+xml" });
-          downloadUrl = URL.createObjectURL(svgBlob);
+        // If we have a vectorized SVG, use it directly
+        if (vectorizedSvgUrl) {
+          downloadUrl = vectorizedSvgUrl;
           downloadFilename = filename.replace(/\.(png|jpg|jpeg)$/i, `.svg`);
           triggerDownload(downloadUrl, downloadFilename);
-        };
+          return;
+        }
         
-        img.src = imageUrl;
+        // Otherwise, create a simple wrapper SVG (not recommended)
+        alert("No vectorized version available. Please use the Vectorize tool first to create a proper SVG.");
         return;
       }
       
@@ -146,10 +141,15 @@ export default function ExportOptions({ imageUrl, filename, onClose }: ExportOpt
             variant={format === "svg" ? "default" : "outline"}
             size="sm"
             onClick={() => setFormat("svg")}
-            className="flex items-center gap-2"
+            disabled={!vectorizedSvgUrl}
+            className="flex flex-col items-center gap-0.5 min-h-[2.5rem]"
+            title={!vectorizedSvgUrl ? "Use Vectorize tool first to create SVG" : "Download vectorized SVG"}
           >
-            <FileCode className="w-4 h-4" />
-            SVG
+            <div className="flex items-center gap-1">
+              <FileCode className="w-4 h-4" />
+              <span>SVG</span>
+            </div>
+            {!vectorizedSvgUrl && <span className="text-[0.5rem] text-gray-400 leading-none">Vectorize first</span>}
           </Button>
         </div>
       </div>
@@ -166,6 +166,18 @@ export default function ExportOptions({ imageUrl, filename, onClose }: ExportOpt
             onChange={(e) => setQuality(Number(e.target.value))}
             className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
           />
+        </div>
+      )}
+
+      {/* SVG Info */}
+      {format === "svg" && !vectorizedSvgUrl && (
+        <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-3">
+          <p className="text-sm text-orange-300">
+            <strong>SVG Export Not Available</strong>
+          </p>
+          <p className="text-xs text-orange-200/80 mt-1">
+            Use the Vectorize tool first to create a proper vectorized version of your image. The SVG export will then be available here.
+          </p>
         </div>
       )}
 

@@ -46,7 +46,7 @@ import BottomToolbar from "./BottomToolbar";
 import ExportOptions from "./ExportOptions";
 import KeyboardLegend from "./KeyboardLegend";
 import CreditConfirmationModal from "./CreditConfirmationModal";
-import { CREDIT_COSTS, FeatureKey } from "@/lib/credit-costs";
+import { CREDIT_COSTS, FeatureKey, getCreditCost } from "@/lib/credit-costs";
 
 interface ImageState {
   url: string;
@@ -76,6 +76,8 @@ export default function ModernImageEditor() {
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [pendingFeature, setPendingFeature] = useState<{ name: string; feature: FeatureKey; endpoint: string; options?: any } | null>(null);
   const [dontShowCreditModal, setDontShowCreditModal] = useState(false);
+  const [vectorizedSvgUrl, setVectorizedSvgUrl] = useState<string | null>(null);
+  const [showVectorizeSuccessModal, setShowVectorizeSuccessModal] = useState(false);
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -204,6 +206,8 @@ export default function ModernImageEditor() {
     setShowComparison(false);
     setActiveTool("basic");
     setZoom(1);
+    setVectorizedSvgUrl(null); // Clear vectorized SVG
+    setShowVectorizeSuccessModal(false); // Close vectorize success modal
     
     // Clear localStorage
     localStorage.removeItem('engravo-app-state');
@@ -221,7 +225,7 @@ export default function ModernImageEditor() {
 
   // Credit processing functions
   const processWithCredits = (featureName: string, feature: FeatureKey, endpoint: string, options: any = {}) => {
-    const creditCost = CREDIT_COSTS[feature];
+    const creditCost = getCreditCost(feature);
     
     // Check if user has enough credits
     if (userCredits === null || userCredits < creditCost) {
@@ -266,7 +270,17 @@ export default function ModernImageEditor() {
         setUserCredits(result.creditsRemaining);
       }
 
-      // Update image state
+       // Special handling for vectorize - store SVG URL for export
+       if (endpoint === 'vectorize' && result.downloadUrl) {
+         // Store the vectorized SVG URL for export options
+         setVectorizedSvgUrl(result.downloadUrl);
+         
+         // Show success modal
+         setShowVectorizeSuccessModal(true);
+         return;
+       }
+
+      // Regular processing - update image state
       const newImageState: ImageState = {
         url: result.url,
         filename: result.filename,
@@ -334,7 +348,10 @@ export default function ModernImageEditor() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Upload failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+      }
 
       const data = await response.json();
       const newImage: ImageState = {
@@ -351,7 +368,8 @@ export default function ModernImageEditor() {
       setHistoryIndex(0);
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Failed to upload image");
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload image";
+      alert(`Upload failed: ${errorMessage}`);
     } finally {
       setProcessing(false);
     }
@@ -757,6 +775,7 @@ export default function ModernImageEditor() {
             onChange={handleFileUpload}
             className="hidden"
           />
+
         </div>
         </div>
       </div>
@@ -1165,7 +1184,7 @@ export default function ModernImageEditor() {
                     <h3 className="font-semibold text-sm">Vectorize (SVG)</h3>
                   </div>
                   <p className="text-xs text-gray-400">
-                    Convert to vector format
+                    Advanced vectorization using edge detection and color clustering. Perfect for logos, illustrations, and complex artwork. 100% free!
                   </p>
                   <Button
                     onClick={() => processWithCredits("Vectorize", "vectorize", "vectorize")}
@@ -1173,7 +1192,7 @@ export default function ModernImageEditor() {
                     className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 flex items-center justify-center gap-2"
                   >
                     <Star className="w-4 h-4" />
-                    Convert to SVG ({CREDIT_COSTS.vectorize} credits)
+                    {processing ? "Vectorizing..." : "Download SVG"} ({getCreditCost('vectorize')} credits)
                   </Button>
                 </div>
               )}
@@ -1218,18 +1237,19 @@ export default function ModernImageEditor() {
           }} 
         />
 
-        {/* Export Options Modal */}
-        {showExportOptions && image && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
-              <ExportOptions
-                imageUrl={image.url}
-                filename={image.filename}
-                onClose={() => setShowExportOptions(false)}
-              />
-            </div>
-          </div>
-        )}
+         {/* Export Options Modal */}
+         {showExportOptions && image && (
+           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+             <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+               <ExportOptions
+                 imageUrl={image.url}
+                 filename={image.filename}
+                 vectorizedSvgUrl={vectorizedSvgUrl}
+                 onClose={() => setShowExportOptions(false)}
+               />
+             </div>
+           </div>
+         )}
 
         {/* Keyboard Legend */}
         <KeyboardLegend
@@ -1268,18 +1288,51 @@ export default function ModernImageEditor() {
           </div>
         )}
 
-        {/* Credit Confirmation Modal */}
-        {showCreditModal && pendingFeature && (
-          <CreditConfirmationModal
-            isOpen={showCreditModal}
-            onConfirm={handleCreditConfirm}
-            onCancel={handleCreditCancel}
-            featureName={pendingFeature.name}
-            creditCost={CREDIT_COSTS[pendingFeature.feature]}
-            currentCredits={userCredits || 0}
-            onDontShowAgain={handleDontShowAgain}
-          />
-        )}
+         {/* Credit Confirmation Modal */}
+         {showCreditModal && pendingFeature && (
+           <CreditConfirmationModal
+             isOpen={showCreditModal}
+             onConfirm={handleCreditConfirm}
+             onCancel={handleCreditCancel}
+             featureName={pendingFeature.name}
+             creditCost={getCreditCost(pendingFeature.feature)}
+             currentCredits={userCredits || 0}
+             onDontShowAgain={handleDontShowAgain}
+           />
+         )}
+
+         {/* Vectorize Success Modal */}
+         {showVectorizeSuccessModal && (
+           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+             <div className="bg-[#1a1f2e] border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
+               <div className="flex items-center gap-2 text-white mb-4">
+                 <FileCode className="w-5 h-5 text-green-400" />
+                 <h3 className="font-semibold text-lg">Vectorization Complete!</h3>
+               </div>
+               <p className="text-gray-300 mb-6">
+                 Your image has been successfully vectorized! You can now export it as an SVG from the Export Options.
+               </p>
+               <div className="flex gap-3">
+                 <Button
+                   onClick={() => setShowVectorizeSuccessModal(false)}
+                   className="flex-1 bg-blue-600 hover:bg-blue-700"
+                 >
+                   Continue Editing
+                 </Button>
+                 <Button
+                   onClick={() => {
+                     setShowVectorizeSuccessModal(false);
+                     setShowExportOptions(true);
+                   }}
+                   className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500"
+                 >
+                   <Download className="w-4 h-4 mr-2" />
+                   Export SVG
+                 </Button>
+               </div>
+             </div>
+           </div>
+         )}
       </div>
     </div>
   );

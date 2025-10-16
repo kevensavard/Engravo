@@ -21,21 +21,28 @@ export async function getOrCreateUser(clerkUserId: string, email: string, firstN
 
   if (existingUser) {
     // User exists with same email but different Clerk ID
-    // Update the user's Clerk ID and return
-    await db.update(users)
-      .set({
-        id: clerkUserId,
-        firstName: firstName || existingUser.firstName,
-        lastName: lastName || existingUser.lastName,
-        imageUrl: imageUrl || existingUser.imageUrl,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.email, email));
-    
-    // Return the updated user
-    return await db.query.users.findFirst({
-      where: eq(users.id, clerkUserId),
-    });
+    // Try to update the user's Clerk ID, but handle errors gracefully
+    try {
+      await db.update(users)
+        .set({
+          id: clerkUserId,
+          firstName: firstName || existingUser.firstName,
+          lastName: lastName || existingUser.lastName,
+          imageUrl: imageUrl || existingUser.imageUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.email, email));
+      
+      // Return the updated user
+      return await db.query.users.findFirst({
+        where: eq(users.id, clerkUserId),
+      });
+    } catch (error) {
+      // If update fails (e.g., due to primary key constraints), 
+      // just return the existing user without updating
+      console.warn("Failed to update user Clerk ID, returning existing user:", error);
+      return existingUser;
+    }
   }
 
   // Create new user with free tier credits
