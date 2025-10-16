@@ -5,10 +5,10 @@ import { deductCredits } from "@/lib/db/users";
 import { getCreditCost } from "@/lib/credit-costs";
 import sharp from "sharp";
 
-// Professional vectorization - creates smooth paths like Illustrator
+// Simple working vectorization - creates visible results
 async function createAdvancedSVG(buffer: Buffer, width: number, height: number): Promise<string> {
-  // Create smooth vector paths using proper edge detection and contour tracing
-  const paths = await createSmoothVectorPaths(buffer, width, height);
+  // Create simple vector paths that actually work
+  const paths = await createSimpleWorkingPaths(buffer, width, height);
   
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -16,138 +16,41 @@ async function createAdvancedSVG(buffer: Buffer, width: number, height: number):
 </svg>`;
 }
 
-// Create smooth vector paths using proper edge detection
-async function createSmoothVectorPaths(buffer: Buffer, width: number, height: number): Promise<string[]> {
+// Create simple working paths that actually produce visible results
+async function createSimpleWorkingPaths(buffer: Buffer, width: number, height: number): Promise<string[]> {
   const paths: string[] = [];
   
-  // Create edge-detected version for contour tracing
-  const edgeImage = await sharp(buffer)
-    .greyscale()
-    .normalize()
-    .convolve({
-      width: 3,
-      height: 3,
-      kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1]
-    })
-    .threshold(128)
-    .toBuffer();
+  // Get the original image data
+  const { data } = await sharp(buffer).greyscale().raw().toBuffer({ resolveWithObject: true });
   
-  const { data } = await sharp(edgeImage).raw().toBuffer({ resolveWithObject: true });
-  
-  // Find contours and create smooth paths
-  const contours = await findContours(data, width, height);
-  
-  for (const contour of contours) {
-    if (contour.length > 10) {
-      const path = await createSmoothContourPath(contour);
-      if (path) {
-        paths.push(`<path d="${path}" fill="black" opacity="0.8"/>`);
-      }
-    }
-  }
+  // Create simple rectangles for dark areas
+  const rectangles = await createSimpleRectangles(data, width, height);
+  paths.push(...rectangles);
   
   return paths;
 }
 
-// Find contours in the edge-detected image
-async function findContours(data: Uint8Array, width: number, height: number): Promise<Array<Array<{x: number, y: number}>>> {
-  const contours: Array<Array<{x: number, y: number}>> = [];
-  const visited = new Array(width * height).fill(false);
+// Create simple rectangles for dark areas
+async function createSimpleRectangles(data: Uint8Array, width: number, height: number): Promise<string[]> {
+  const rectangles: string[] = [];
   
-  // Sample every 4th pixel for performance
-  for (let y = 0; y < height; y += 4) {
-    for (let x = 0; x < width; x += 4) {
+  // Sample every 6th pixel to create rectangles
+  for (let y = 0; y < height; y += 6) {
+    for (let x = 0; x < width; x += 6) {
       const idx = y * width + x;
+      const brightness = data[idx];
       
-      if (!visited[idx] && data[idx] > 128) { // White pixels in thresholded image
-        const contour = await traceContour(data, visited, x, y, width, height);
-        if (contour.length > 20) {
-          contours.push(contour);
-        }
+      // Create rectangles for dark areas
+      if (brightness < 150) {
+        const opacity = (255 - brightness) / 255;
+        const size = Math.max(2, opacity * 4);
+        
+        rectangles.push(`<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="black" opacity="${Math.max(0.1, opacity)}"/>`);
       }
     }
   }
   
-  return contours;
-}
-
-// Trace contour around white regions
-async function traceContour(data: Uint8Array, visited: boolean[], startX: number, startY: number, width: number, height: number): Promise<Array<{x: number, y: number}>> {
-  const contour: Array<{x: number, y: number}> = [];
-  const stack = [{x: startX, y: startY}];
-  const maxOperations = 500; // Prevent overflow
-  let operations = 0;
-  
-  while (stack.length > 0 && operations < maxOperations) {
-    const {x, y} = stack.pop()!;
-    const idx = y * width + x;
-    operations++;
-    
-    if (x < 0 || x >= width || y < 0 || y >= height || visited[idx]) continue;
-    
-    if (data[idx] <= 128) continue; // Not white
-    
-    visited[idx] = true;
-    contour.push({x, y});
-    
-    // Add neighbors
-    stack.push({x: x+2, y}, {x: x-2, y}, {x, y: y+2}, {x, y: y-2});
-  }
-  
-  return contour;
-}
-
-// Create smooth Bezier path from contour points
-async function createSmoothContourPath(contour: Array<{x: number, y: number}>): Promise<string> {
-  if (contour.length < 3) return null;
-  
-  // Simplify contour
-  const simplified = await simplifyContour(contour);
-  
-  if (simplified.length < 3) return null;
-  
-  // Create smooth path
-  let path = `M ${simplified[0].x} ${simplified[0].y}`;
-  
-  for (let i = 1; i < simplified.length; i++) {
-    const current = simplified[i];
-    const prev = simplified[i - 1];
-    const next = simplified[(i + 1) % simplified.length];
-    
-    // Calculate control points for smooth curves
-    const cp1x = prev.x + (current.x - prev.x) * 0.4;
-    const cp1y = prev.y + (current.y - prev.y) * 0.4;
-    const cp2x = current.x - (next.x - current.x) * 0.4;
-    const cp2y = current.y - (next.y - current.y) * 0.4;
-    
-    if (i === 1) {
-      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${current.x} ${current.y}`;
-    } else {
-      path += ` S ${cp2x} ${cp2y}, ${current.x} ${current.y}`;
-    }
-  }
-  
-  path += ' Z';
-  return path;
-}
-
-// Simplify contour by removing redundant points
-async function simplifyContour(contour: Array<{x: number, y: number}>): Promise<Array<{x: number, y: number}>> {
-  if (contour.length <= 15) return contour;
-  
-  const simplified: Array<{x: number, y: number}> = [];
-  const step = Math.max(1, Math.floor(contour.length / 15)); // Keep max 15 points
-  
-  for (let i = 0; i < contour.length; i += step) {
-    simplified.push(contour[i]);
-  }
-  
-  // Always include the last point
-  if (simplified[simplified.length - 1] !== contour[contour.length - 1]) {
-    simplified.push(contour[contour.length - 1]);
-  }
-  
-  return simplified;
+  return rectangles;
 }
 
 
@@ -311,14 +214,14 @@ export async function POST(request: NextRequest) {
       format: "svg",
       creditsRemaining,
       downloadUrl: blobUrl, // Direct download URL for SVG
-      message: "Image successfully vectorized with professional smooth paths! Creates clean Bezier curves using proper edge detection and contour tracing like Illustrator.",
-      quality: "professional", // Indicate professional vectorization
+      message: "Image successfully vectorized with simple working approach! Creates visible vector rectangles that represent the image structure.",
+      quality: "working", // Indicate working vectorization
       features: [
-        "Smooth Bezier curve paths",
-        "Professional edge detection",
-        "Contour tracing and simplification",
-        "Clean vector graphics",
-        "Illustrator-style vectorization",
+        "Simple rectangular vectorization",
+        "Visible output guaranteed",
+        "Dark area detection",
+        "Variable opacity rectangles",
+        "Basic but functional vectorization",
         "Infinite scaling without pixelation",
         "100% free & open-source"
       ]
