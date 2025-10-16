@@ -34,24 +34,24 @@ async function createDetailedVectorPaths(buffer: Buffer, width: number, height: 
   return paths;
 }
 
-// Create detailed stippling dots to preserve fine details
+// Create efficient stippling dots without processing every pixel
 async function createDetailedStippling(data: Uint8Array, width: number, height: number): Promise<string[]> {
   const dots: string[] = [];
   
-  // Sample every pixel for maximum detail preservation
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
+  // Sample every 3rd pixel to prevent stack overflow while maintaining detail
+  for (let y = 0; y < height; y += 3) {
+    for (let x = 0; x < width; x += 3) {
       const idx = y * width + x;
       const brightness = data[idx];
       
       // Create dots for dark areas (stippling effect)
-      if (brightness < 220) {
+      if (brightness < 200) {
         const opacity = (255 - brightness) / 255;
-        const radius = Math.max(0.3, opacity * 0.8);
+        const radius = Math.max(0.5, opacity * 1.2);
         
         // Only add dots that are significant enough
-        if (opacity > 0.1) {
-          dots.push(`<circle cx="${x}" cy="${y}" r="${radius}" fill="black" opacity="${Math.max(0.05, opacity * 0.8)}"/>`);
+        if (opacity > 0.2) {
+          dots.push(`<circle cx="${x}" cy="${y}" r="${radius}" fill="black" opacity="${Math.max(0.1, opacity * 0.7)}"/>`);
         }
       }
     }
@@ -60,21 +60,21 @@ async function createDetailedStippling(data: Uint8Array, width: number, height: 
   return dots;
 }
 
-// Create larger shapes for major features
+// Create larger shapes for major features (optimized)
 async function createMajorShapes(data: Uint8Array, width: number, height: number): Promise<string[]> {
   const shapes: string[] = [];
   
   // Create shapes for very dark areas (major features)
   const visited = new Array(width * height).fill(false);
   
-  // Sample every 4th pixel for larger shapes
-  for (let y = 0; y < height; y += 4) {
-    for (let x = 0; x < width; x += 4) {
+  // Sample every 8th pixel to reduce processing and prevent overflow
+  for (let y = 0; y < height; y += 8) {
+    for (let x = 0; x < width; x += 8) {
       const idx = y * width + x;
       
-      if (!visited[idx] && data[idx] < 100) { // Very dark areas only
-        const region = await floodFillLargeRegion(data, visited, x, y, width, height, 100);
-        if (region.area > 100) {
+      if (!visited[idx] && data[idx] < 80) { // Very dark areas only
+        const region = await floodFillLargeRegion(data, visited, x, y, width, height, 80);
+        if (region.area > 200) { // Only significant regions
           const path = await createSmoothRegionPath(region);
           if (path) {
             shapes.push(`<path d="${path}" fill="black" opacity="0.9"/>`);
@@ -87,13 +87,14 @@ async function createMajorShapes(data: Uint8Array, width: number, height: number
   return shapes;
 }
 
-// Flood fill for larger regions
+// Efficient flood fill with stack limit to prevent overflow
 async function floodFillLargeRegion(data: Uint8Array, visited: boolean[], startX: number, startY: number, width: number, height: number, threshold: number): Promise<{x: number, y: number, width: number, height: number, area: number}> {
   let minX = startX, maxX = startX, minY = startY, maxY = startY;
   let pixelCount = 0;
   const stack = [{x: startX, y: startY}];
+  const maxStackSize = 1000; // Prevent stack overflow
   
-  while (stack.length > 0) {
+  while (stack.length > 0 && stack.length < maxStackSize) {
     const {x, y} = stack.pop()!;
     const idx = y * width + x;
     
@@ -110,8 +111,10 @@ async function floodFillLargeRegion(data: Uint8Array, visited: boolean[], startX
     minY = Math.min(minY, y);
     maxY = Math.max(maxY, y);
     
-    // Add neighbors
-    stack.push({x: x+1, y}, {x: x-1, y}, {x, y: y+1}, {x, y: y-1});
+    // Add neighbors with reduced frequency to prevent overflow
+    if (x % 2 === 0 && y % 2 === 0) {
+      stack.push({x: x+2, y}, {x: x-2, y}, {x, y: y+2}, {x, y: y-2});
+    }
   }
   
   return {
@@ -292,13 +295,13 @@ export async function POST(request: NextRequest) {
       format: "svg",
       creditsRemaining,
       downloadUrl: blobUrl, // Direct download URL for SVG
-      message: "Image successfully vectorized with pixel-perfect detail preservation! Creates detailed stippling dots and major shapes that preserve every detail like Illustrator.",
-      quality: "pixel-perfect", // Indicate pixel-perfect vectorization
+      message: "Image successfully vectorized with optimized detail preservation! Creates efficient stippling dots and major shapes while preventing server overload.",
+      quality: "optimized", // Indicate optimized vectorization
       features: [
-        "Pixel-perfect detail preservation",
-        "Detailed stippling dot recreation",
+        "Efficient detail preservation",
+        "Optimized stippling dot recreation",
         "Major shape detection for structure",
-        "Preserves every fine detail",
+        "Server-safe processing limits",
         "Professional stippling vectorization",
         "Infinite scaling without pixelation",
         "100% free & open-source"
