@@ -4,96 +4,13 @@ import { loadImageBuffer, saveBuffer } from "@/lib/image-processor";
 import { deductCredits } from "@/lib/db/users";
 import { getCreditCost } from "@/lib/credit-costs";
 import sharp from "sharp";
-import { spawn } from "child_process";
-import fs from "fs/promises";
-import path from "path";
 
-// Professional vectorization with fallback for Vercel
+// Professional vectorization using enhanced Node.js algorithms
 async function createAdvancedSVG(buffer: Buffer, width: number, height: number): Promise<string> {
-  try {
-    // Try Python vectorization first
-    return await runPythonVectorization(buffer);
-  } catch (error) {
-    console.log("Python vectorization failed, using Node.js fallback:", error);
-    // Fallback to enhanced Node.js vectorization
-    return await createEnhancedNodeVectorization(buffer, width, height);
-  }
+  // Use enhanced Node.js vectorization as primary method
+  return await createEnhancedNodeVectorization(buffer, width, height);
 }
 
-// Run Python vectorization via API endpoint
-async function runPythonVectorization(buffer: Buffer): Promise<string> {
-  try {
-    // Convert buffer to base64
-    const imageData = buffer.toString('base64');
-    
-    // Call Python API endpoint
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-    const pythonApiUrl = `${baseUrl}/api/vectorize`;
-    
-    const response = await fetch(pythonApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image_data: imageData
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Python API failed: ${response.status} ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    
-    if (!result.success) {
-      throw new Error(`Python vectorization failed: ${result.error}`);
-    }
-    
-    return result.svg_content;
-    
-  } catch (error) {
-    console.log("Python API call failed:", error);
-    throw error;
-  }
-}
-
-// Execute Python script
-async function runPythonScript(scriptPath: string, args: string[]): Promise<{success: boolean, error?: string, output?: any}> {
-  return new Promise((resolve) => {
-    const python = spawn('python3', [scriptPath, ...args]);
-    let stdout = '';
-    let stderr = '';
-    
-    python.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    python.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          // Parse JSON output from Python script
-          const lines = stdout.trim().split('\n');
-          const jsonLine = lines[lines.length - 1];
-          const output = JSON.parse(jsonLine);
-          resolve({ success: output.success, output });
-        } catch (e) {
-          resolve({ success: false, error: `Failed to parse Python output: ${stdout}` });
-        }
-      } else {
-        resolve({ success: false, error: `Python script failed: ${stderr}` });
-      }
-    });
-    
-    python.on('error', (error) => {
-      resolve({ success: false, error: `Failed to run Python script: ${error.message}` });
-    });
-  });
-}
 
 // Enhanced Node.js vectorization fallback for Vercel
 async function createEnhancedNodeVectorization(buffer: Buffer, width: number, height: number): Promise<string> {
@@ -375,15 +292,15 @@ export async function POST(request: NextRequest) {
       format: "svg",
       creditsRemaining,
       downloadUrl: blobUrl, // Direct download URL for SVG
-      message: "Image successfully vectorized with professional Python algorithms! Uses OpenCV, K-means clustering, Canny edge detection, and Bezier curve fitting for Illustrator-quality results.",
-      quality: "professional", // Indicate professional vectorization
+      message: "Image successfully vectorized with enhanced algorithms! Uses professional edge detection, flood-fill region analysis, and smooth vector paths for high-quality results.",
+      quality: "enhanced", // Indicate enhanced vectorization
       features: [
-        "OpenCV-based edge detection",
-        "K-means color clustering (16 colors)",
-        "Canny edge detection with adaptive thresholds",
-        "Ramer-Douglas-Peucker contour simplification",
-        "Cubic Bezier curve fitting",
-        "Professional SVG output with gradients",
+        "Professional edge detection with Laplacian kernel",
+        "Flood-fill region analysis and segmentation",
+        "Smooth rounded rectangle vector paths",
+        "Enhanced Node.js algorithms for serverless deployment",
+        "Professional SVG output with filters",
+        "Infinite scaling without pixelation",
         "100% free & open-source"
       ]
     });
