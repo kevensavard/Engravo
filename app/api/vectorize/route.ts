@@ -20,39 +20,40 @@ async function createAdvancedSVG(buffer: Buffer, width: number, height: number):
   }
 }
 
-// Run Python vectorization script
+// Run Python vectorization via API endpoint
 async function runPythonVectorization(buffer: Buffer): Promise<string> {
-  // Use /tmp directory which is writable in Vercel serverless functions
-  const tempDir = '/tmp';
-  
-  const inputPath = path.join(tempDir, `input_${Date.now()}.png`);
-  const outputPath = path.join(tempDir, `output_${Date.now()}.svg`);
-  
   try {
-    // Save input image
-    await fs.writeFile(inputPath, buffer);
+    // Convert buffer to base64
+    const imageData = buffer.toString('base64');
     
-    // Run Python vectorization script
-    const pythonScript = path.join(process.cwd(), 'vectorize.py');
-    const result = await runPythonScript(pythonScript, [inputPath, outputPath]);
+    // Call Python API endpoint
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const pythonApiUrl = `${baseUrl}/api/vectorize`;
+    
+    const response = await fetch(pythonApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image_data: imageData
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Python API failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const result = await response.json();
     
     if (!result.success) {
       throw new Error(`Python vectorization failed: ${result.error}`);
     }
     
-    // Read the generated SVG
-    const svgContent = await fs.readFile(outputPath, 'utf8');
-    
-    // Clean up temporary files
-    await fs.unlink(inputPath).catch(() => {});
-    await fs.unlink(outputPath).catch(() => {});
-    
-    return svgContent;
+    return result.svg_content;
     
   } catch (error) {
-    // Clean up temporary files on error
-    await fs.unlink(inputPath).catch(() => {});
-    await fs.unlink(outputPath).catch(() => {});
+    console.log("Python API call failed:", error);
     throw error;
   }
 }
@@ -374,15 +375,15 @@ export async function POST(request: NextRequest) {
       format: "svg",
       creditsRemaining,
       downloadUrl: blobUrl, // Direct download URL for SVG
-      message: "Image successfully vectorized with enhanced algorithms! Uses professional edge detection, flood-fill region analysis, and smooth vector paths for high-quality results.",
-      quality: "enhanced", // Indicate enhanced vectorization
+      message: "Image successfully vectorized with professional Python algorithms! Uses OpenCV, K-means clustering, Canny edge detection, and Bezier curve fitting for Illustrator-quality results.",
+      quality: "professional", // Indicate professional vectorization
       features: [
-        "Professional edge detection with Laplacian kernel",
-        "Flood-fill region analysis and segmentation",
-        "Smooth rounded rectangle vector paths",
-        "Enhanced Node.js fallback for serverless deployment",
-        "Professional SVG output with filters",
-        "Infinite scaling without pixelation",
+        "OpenCV-based edge detection",
+        "K-means color clustering (16 colors)",
+        "Canny edge detection with adaptive thresholds",
+        "Ramer-Douglas-Peucker contour simplification",
+        "Cubic Bezier curve fitting",
+        "Professional SVG output with gradients",
         "100% free & open-source"
       ]
     });

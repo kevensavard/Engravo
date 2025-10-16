@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx lib/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "install-python": "pip install -r requirements.txt"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.33.4",
