@@ -1196,7 +1196,7 @@ export default function ModernImageEditor() {
 
               {/* Vectorize */}
               {activeTool === 'vectorize' && (
-                <div className="space-y-4">
+                <div className="space-y-4 opacity-50 pointer-events-none">
                   <div className="flex items-center gap-2 text-white">
                     <FileCode className="w-5 h-5 text-gray-400" />
                     <h3 className="font-semibold text-sm">Vectorize (SVG)</h3>
@@ -1205,13 +1205,24 @@ export default function ModernImageEditor() {
                     Advanced vectorization using edge detection and color clustering. Perfect for logos, illustrations, and complex artwork. 100% free!
                   </p>
                   <Button
-                    onClick={() => processWithCredits("Vectorize", "vectorize", "vectorize")}
-                    disabled={processing}
-                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 flex items-center justify-center gap-2"
+                    disabled={true}
+                    className="w-full bg-gradient-to-r from-gray-500 to-gray-600 cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Star className="w-4 h-4" />
-                    {processing ? "Vectorizing..." : "Download SVG"} ({getCreditCost('vectorize')} credits)
+                    Temporarily Unavailable ({getCreditCost('vectorize')} credits)
                   </Button>
+                  
+                  {/* Bug Fix Notice */}
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium text-yellow-600">Under Maintenance</span>
+                    </div>
+                    <p className="text-xs text-yellow-600/80 leading-relaxed">
+                      We're currently fixing a bug in our vectorization algorithm to ensure the highest quality results. 
+                      This feature will be back online shortly with improved performance and accuracy.
+                    </p>
+                  </div>
                 </div>
               )}
 

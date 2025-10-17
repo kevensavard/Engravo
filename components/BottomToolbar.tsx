@@ -38,12 +38,17 @@ export default function BottomToolbar({ onToolSelect, activeTool }: BottomToolba
             const Icon = tool.icon;
             const isActive = activeTool === tool.id;
             
+            const isVectorize = tool.id === "vectorize";
+            
             return (
               <button
                 key={tool.id}
-                onClick={() => onToolSelect(tool.id)}
+                onClick={() => !isVectorize && onToolSelect(tool.id)}
+                disabled={isVectorize}
                 className={`flex flex-col items-center justify-center px-1 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 rounded-lg transition-all flex-shrink-0 min-w-[50px] sm:min-w-[60px] md:min-w-[70px] lg:min-w-[80px] ${
-                  isActive
+                  isVectorize
+                    ? "opacity-50 cursor-not-allowed text-gray-500"
+                    : isActive
                     ? "bg-blue-600 text-white"
                     : "text-gray-400 hover:bg-gray-800/50 hover:text-white"
                 }`}

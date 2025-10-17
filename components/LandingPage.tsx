@@ -68,7 +68,7 @@ export default function LandingPage() {
       category: "AI-Powered Tools",
       icon: Wand2,
       color: "from-orange-500 to-red-500",
-      items: ["Remove Background (3)", "AI Upscale (3)", "3D Depth Map (10)", "Vectorize to SVG (4)"],
+      items: ["Remove Background (3)", "AI Upscale (3)", "3D Depth Map (10)", "Vectorize to SVG (Coming Soon)"],
       credits: "3-10 credits",
     },
     {
